@@ -1,0 +1,68 @@
+# Cnturion Inventory Manager - .gitignore
+# This file specifies which files should NOT be tracked by Git
+
+# ============================================
+# SENSITIVE FILES - NEVER COMMIT THESE!
+# ============================================
+# Database files (may contain sensitive data)
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Log files (may contain sensitive information)
+logs/*.log
+
+# Configuration files with secrets
+config/config.env
+config/*.key
+config/*.pem
+
+# ============================================
+# BUILD ARTIFACTS
+# ============================================
+# Compiled object files
+*.o
+*.obj
+
+# Executables
+cnturion
+inventory_manager
+*.exe
+*.out
+*.app
+
+# ============================================
+# LIBRARY FILES
+# ============================================
+# SQLite library (will be downloaded separately)
+lib/*.so
+lib/*.a
+lib/*.dll
+lib/*.dylib
+
+# ============================================
+# IDE AND EDITOR FILES
+# ============================================
+# VS Code
+.vscode/
+*.code-workspace
+
+# Other editors
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+*.tmp
+*.temp
+*.bak
+
+# ============================================
+# TEST COVERAGE
+# ============================================
+*.gcda
+*.gcno
+coverage/
