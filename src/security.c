@@ -1,4 +1,7 @@
+#include <argon2.h>
+#include <regex.h>
 #include <security.h>
+#include <time.h>
 
 /*
  * Lightweight SHA-256 implementation (public domain)
@@ -156,24 +159,74 @@ void hashPassword(const char *password, char *outputHex) {
   outputHex[64] = '\0';
 }
 
-int validatePassword(const char *password) {
-  int len = strlen(password);
-  int hasDigit = 0, hasSpecial = 0;
+void hashPasswordWithSalt(const char *password, const char *salt,
+                          char *outputHex) {
+  // Concatenate salt + password, then hash
+  char salted[256];
+  snprintf(salted, sizeof(salted), "%s%s", salt, password);
 
-  if (len < 8)
-    return 0;
+  hashPassword(salted, outputHex);
 
-  for (int i = 0; i < len; i++) {
-    if (password[i] >= '0' && password[i] <= '9')
-      hasDigit = 1;
-    if ((password[i] >= '!' && password[i] <= '/') ||
-        (password[i] >= ':' && password[i] <= '@') ||
-        (password[i] >= '[' && password[i] <= '`') ||
-        (password[i] >= '{' && password[i] <= '~'))
-      hasSpecial = 1;
+  // Clear the salted buffer from memory
+  memset(salted, 0, sizeof(salted));
+}
+
+int generateSalt(char *saltOut) {
+  FILE *f = fopen("/dev/urandom", "rb");
+  if (!f) {
+    // Fallback: use time-based pseudo-random salt
+    srand((unsigned int)time(NULL));
+    for (int i = 0; i < 16; i++) {
+      sprintf(saltOut + (i * 2), "%02x", rand() % 256);
+    }
+    saltOut[32] = '\0';
+    return 1;
   }
 
-  return hasDigit && hasSpecial;
+  unsigned char raw[16];
+  size_t read = fread(raw, 1, 16, f);
+  fclose(f);
+
+  if (read != 16)
+    return 0;
+
+  for (int i = 0; i < 16; i++)
+    sprintf(saltOut + (i * 2), "%02x", raw[i]);
+  saltOut[32] = '\0';
+  return 1;
+}
+
+int validatePassword(const char *password) {
+  // All checks use POSIX regex
+  return matchesPattern(password, ".{8,}") &&      // min 8 chars
+         matchesPattern(password, "[A-Z]") &&      // has uppercase
+         matchesPattern(password, "[0-9]") &&      // has digit
+         matchesPattern(password, "[^a-zA-Z0-9]"); // has special char
+}
+
+// POSIX regex helper — returns 1 if input matches pattern, 0 otherwise
+int matchesPattern(const char *input, const char *pattern) {
+  regex_t regex;
+  if (regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB) != 0)
+    return 0;
+  int result = regexec(&regex, input, 0, NULL, 0);
+  regfree(&regex);
+  return (result == 0) ? 1 : 0;
+}
+
+int validateUsername(const char *username) {
+  // Pattern: 3-63 alphanumeric chars or underscores
+  return matchesPattern(username, "^[a-zA-Z0-9_]{3,63}$");
+}
+
+int validateProductName(const char *name) {
+  // Pattern: 1-127 chars, letters/digits/spaces/underscores/hyphens/dots
+  return matchesPattern(name, "^[a-zA-Z0-9 _./-]{1,127}$");
+}
+
+int validateProductCategory(const char *category) {
+  // Pattern: 1-63 chars, letters/digits/spaces/underscores/hyphens
+  return matchesPattern(category, "^[a-zA-Z0-9 _-]{1,63}$");
 }
 
 int sanitizeString(char *input, int maxLen) {
@@ -186,10 +239,49 @@ int sanitizeString(char *input, int maxLen) {
   }
 
   for (int i = 0; i < len; i++) {
-    if (input[i] == ',' || input[i] == '\n' || input[i] == '\r') {
+    if (input[i] == ',' || input[i] == '"' || input[i] == '\n' ||
+        input[i] == '\r') {
       input[i] = '_';
       clean = 0;
     }
   }
   return clean;
+}
+
+/* ======== Argon2id Password Hashing ======== */
+
+// Argon2id parameters (OWASP recommended minimums)
+#define ARGON2_T_COST 3      // 3 iterations
+#define ARGON2_M_COST 65536  // 64 MB memory
+#define ARGON2_PARALLELISM 1 // single-threaded (CLI app)
+#define ARGON2_HASHLEN 32    // 32-byte hash output
+
+int hashPasswordArgon2(const char *password, char *encodedOut,
+                       size_t encodedMax) {
+  // Generate random salt
+  unsigned char salt[SALT_RAW_LEN];
+  FILE *f = fopen("/dev/urandom", "rb");
+  if (!f) {
+    // Fallback with time-based seed
+    srand((unsigned int)time(NULL));
+    for (int i = 0; i < SALT_RAW_LEN; i++)
+      salt[i] = (unsigned char)(rand() % 256);
+  } else {
+    size_t rd = fread(salt, 1, SALT_RAW_LEN, f);
+    fclose(f);
+    if (rd != SALT_RAW_LEN)
+      return 0;
+  }
+
+  int result =
+      argon2id_hash_encoded(ARGON2_T_COST, ARGON2_M_COST, ARGON2_PARALLELISM,
+                            password, strlen(password), salt, SALT_RAW_LEN,
+                            ARGON2_HASHLEN, encodedOut, encodedMax);
+
+  return (result == ARGON2_OK) ? 1 : 0;
+}
+
+int verifyPasswordArgon2(const char *encoded, const char *password) {
+  int result = argon2id_verify(encoded, password, strlen(password));
+  return (result == ARGON2_OK) ? 1 : 0;
 }

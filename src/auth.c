@@ -1,6 +1,23 @@
 #include <auth.h>
+#include <termios.h>
+#include <unistd.h>
 
 /* ---------- helpers ---------- */
+
+// Read password without echoing characters to terminal
+static void readPassword(char *buf, int maxLen) {
+  struct termios oldt, newt;
+  tcgetattr(STDIN_FILENO, &oldt);
+  newt = oldt;
+  newt.c_lflag &= ~(ECHO); // Disable echo
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+  fgets(buf, maxLen, stdin);
+  buf[strcspn(buf, "\n")] = '\0';
+
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // Restore echo
+  printf("\n"); // Newline since user's Enter wasn't echoed
+}
 
 static unsigned int totalUsersCSV() {
   FILE *f = fopen(USERS_CSV, "r");
@@ -28,7 +45,7 @@ static int readUsers(User *users, unsigned int max) {
     if (row == 1)
       continue; // skip header
 
-    char *value = strtok(line, ",");
+    char *value = strtok(line, "|");
     int col = 0;
     while (value) {
       // skip leading spaces
@@ -44,14 +61,14 @@ static int readUsers(User *users, unsigned int max) {
         users[count].username[63] = '\0';
         break;
       case 2:
-        strncpy(users[count].password_hash, value, 64);
-        users[count].password_hash[64] = '\0';
+        strncpy(users[count].password_hash, value, ARGON2_ENCODED_LEN - 1);
+        users[count].password_hash[ARGON2_ENCODED_LEN - 1] = '\0';
         break;
       case 3:
         users[count].role = (Role)atoi(value);
         break;
       }
-      value = strtok(NULL, ",");
+      value = strtok(NULL, "|");
       col++;
     }
     count++;
@@ -61,7 +78,6 @@ static int readUsers(User *users, unsigned int max) {
 }
 
 static void writeUserCSV(User *user) {
-  // Append a single user to the CSV (or create with header)
   FILE *f = fopen(USERS_CSV, "r");
   int exists = (f != NULL);
   if (f)
@@ -74,9 +90,9 @@ static void writeUserCSV(User *user) {
   }
 
   if (!exists) {
-    fprintf(f, "ID,Username,PasswordHash,Role\n");
+    fprintf(f, "ID|Username|PasswordHash|Role\n");
   }
-  fprintf(f, "%d,%s,%s,%d\n", user->id, user->username, user->password_hash,
+  fprintf(f, "%d|%s|%s|%d\n", user->id, user->username, user->password_hash,
           user->role);
   fclose(f);
 }
@@ -86,18 +102,41 @@ static void writeUserCSV(User *user) {
 void seedDefaultAdmin() {
   FILE *f = fopen(USERS_CSV, "r");
   if (f) {
-    // File already exists, don't overwrite
-    fclose(f);
-    return;
+    // File exists — check if it uses Argon2 format (starts with $argon2)
+    char header[512];
+    char firstUser[512];
+    int hasHeader = (fgets(header, sizeof(header), f) != NULL);
+    int hasUser = (hasHeader && fgets(firstUser, sizeof(firstUser), f) != NULL);
+
+    if (hasUser) {
+      // Check for Argon2 marker in password hash field
+      if (strstr(firstUser, "$argon2") != NULL) {
+        fclose(f);
+        return; // Already using Argon2 format
+      }
+      // Old format detected — re-create
+      fclose(f);
+      printf(YEL "Upgrading user database to Argon2id hashing...\n" reset);
+      remove(USERS_CSV);
+    } else {
+      fclose(f);
+      // Empty/corrupt file, re-create
+      remove(USERS_CSV);
+    }
   }
 
-  // Create default admin
+  // Create default admin with Argon2id
   User admin;
   admin.id = 1;
   strcpy(admin.username, "admin");
-  hashPassword("Admin123!", admin.password_hash);
-  admin.role = ROLE_ADMIN;
 
+  if (!hashPasswordArgon2("Admin123!", admin.password_hash,
+                          ARGON2_ENCODED_LEN)) {
+    printf(RED "Error: Could not hash admin password.\n" reset);
+    return;
+  }
+
+  admin.role = ROLE_ADMIN;
   writeUserCSV(&admin);
   printf(YEL "Default admin account created (username: admin)\n" reset);
 }
@@ -105,7 +144,6 @@ void seedDefaultAdmin() {
 int login(Session *session) {
   char username[64];
   char password[128];
-  char inputHash[HASH_HEX_LEN];
 
   unsigned int totalUsers = totalUsersCSV();
   if (totalUsers == 0) {
@@ -128,33 +166,31 @@ int login(Session *session) {
     username[strcspn(username, "\n")] = '\0';
 
     printf("Password: ");
-    fgets(password, 128, stdin);
-    password[strcspn(password, "\n")] = '\0';
-
-    hashPassword(password, inputHash);
-
-    // Clear the password from memory
-    memset(password, 0, sizeof(password));
+    readPassword(password, 128);
 
     for (int i = 0; i < count; i++) {
       if (strcmp(users[i].username, username) == 0 &&
-          strcmp(users[i].password_hash, inputHash) == 0) {
+          verifyPasswordArgon2(users[i].password_hash, password)) {
 
         session->user_id = users[i].id;
         strncpy(session->username, users[i].username, 63);
         session->username[63] = '\0';
         session->role = users[i].role;
         session->active = 1;
+        session->login_time = time(NULL);
+        session->last_activity = time(NULL);
 
         printf(GRN "\nLogin successful! Welcome, %s (%s)\n" reset,
                session->username,
                session->role == ROLE_ADMIN ? "Admin" : "Employee");
 
+        memset(password, 0, sizeof(password));
         free(users);
         return 1;
       }
     }
 
+    memset(password, 0, sizeof(password));
     printf(RED "Invalid username or password.\n" reset);
   }
 
@@ -179,17 +215,17 @@ void createUser(Session *session) {
 
   printf(CYN "===== Create New User =====\n" reset);
 
-  // Username
-  printf("Username: ");
+  // Username with validation
+  printf("Username (3-63 chars, alphanumeric/underscore): ");
   fgets(newUser.username, 64, stdin);
   newUser.username[strcspn(newUser.username, "\n")] = '\0';
 
-  while (strlen(newUser.username) == 0) {
-    printf(RED "Username cannot be empty!" reset " Enter again: ");
+  while (!validateUsername(newUser.username)) {
+    printf(RED "Invalid username! " reset
+               "Must be 3-63 chars, alphanumeric/underscore only: ");
     fgets(newUser.username, 64, stdin);
     newUser.username[strcspn(newUser.username, "\n")] = '\0';
   }
-  sanitizeString(newUser.username, 63);
 
   // Check if username already exists
   User *users =
@@ -209,12 +245,11 @@ void createUser(Session *session) {
     free(users);
   }
 
-  // Password
+  // Password with enhanced policy
   int validPass = 0;
   while (!validPass) {
-    printf("Password (min 8 chars, 1 digit, 1 special): ");
-    fgets(password, 128, stdin);
-    password[strcspn(password, "\n")] = '\0';
+    printf("Password (min 8 chars, 1 uppercase, 1 digit, 1 special): ");
+    readPassword(password, 128);
 
     if (!validatePassword(password)) {
       printf(RED "Password does not meet requirements!\n" reset);
@@ -222,8 +257,7 @@ void createUser(Session *session) {
     }
 
     printf("Confirm password: ");
-    fgets(confirmPassword, 128, stdin);
-    confirmPassword[strcspn(confirmPassword, "\n")] = '\0';
+    readPassword(confirmPassword, 128);
 
     if (strcmp(password, confirmPassword) != 0) {
       printf(RED "Passwords do not match!\n" reset);
@@ -233,7 +267,15 @@ void createUser(Session *session) {
     validPass = 1;
   }
 
-  hashPassword(password, newUser.password_hash);
+  // Hash with Argon2id
+  if (!hashPasswordArgon2(password, newUser.password_hash,
+                          ARGON2_ENCODED_LEN)) {
+    printf(RED "Error: Password hashing failed.\n" reset);
+    memset(password, 0, sizeof(password));
+    memset(confirmPassword, 0, sizeof(confirmPassword));
+    return;
+  }
+
   memset(password, 0, sizeof(password));
   memset(confirmPassword, 0, sizeof(confirmPassword));
 
@@ -342,4 +384,50 @@ void userManagementMenu(Session *session) {
       break;
     }
   }
+}
+
+/* ---------- Session Management ---------- */
+
+int checkSessionTimeout(Session *session) {
+  if (!session->active)
+    return 0;
+
+  time_t now = time(NULL);
+  double inactivity = difftime(now, session->last_activity);
+  double totalDuration = difftime(now, session->login_time);
+
+  if (inactivity >= SESSION_TIMEOUT_SEC) {
+    printf(RED "\n===== Session Expired =====\n" reset);
+    printf("Your session has been inactive for more than %d minutes.\n",
+           SESSION_TIMEOUT_SEC / 60);
+    printf("You have been logged out for security.\n\n");
+    logoutSession(session);
+    return 0;
+  }
+
+  if (totalDuration >= SESSION_MAX_DURATION) {
+    printf(RED "\n===== Session Expired =====\n" reset);
+    printf("Your session has exceeded the maximum duration of %d hour(s).\n",
+           SESSION_MAX_DURATION / 3600);
+    printf("Please log in again.\n\n");
+    logoutSession(session);
+    return 0;
+  }
+
+  return 1;
+}
+
+void updateSessionActivity(Session *session) {
+  if (session->active) {
+    session->last_activity = time(NULL);
+  }
+}
+
+void logoutSession(Session *session) {
+  session->active = 0;
+  session->user_id = 0;
+  session->role = ROLE_EMPLOYEE;
+  session->login_time = 0;
+  session->last_activity = 0;
+  memset(session->username, 0, sizeof(session->username));
 }

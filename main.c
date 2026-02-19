@@ -4,6 +4,7 @@
 
 #include <auth.h>
 #include <input_validation.h>
+#include <logger.h>
 #include <product_controller.h>
 
 void cleanup(Product **pointer) {
@@ -73,6 +74,14 @@ void adminMenu(Product *prod, unsigned int *total, unsigned int *uid,
   unsigned short exit = 0;
 
   while (!exit) {
+    // Check session timeout before each action
+    if (!checkSessionTimeout(session)) {
+      logEvent(LOG_AUDIT, session->username, "SESSION_TIMEOUT",
+               "Admin session expired due to inactivity");
+      exit = 1;
+      break;
+    }
+
     printf(CYN "\n===== Inventory Management [Admin: %s] ===== \n" reset,
            session->username);
     printf("----------------------------------------- \n");
@@ -90,9 +99,12 @@ void adminMenu(Product *prod, unsigned int *total, unsigned int *uid,
     fgets(input, 10, stdin);
     int choice = atoi(input);
 
+    updateSessionActivity(session);
+
     switch (choice) {
     case 0:
       printf("Exiting. \n");
+      logEvent(LOG_AUDIT, session->username, "LOGOUT", "Admin logged out");
       exit = 1;
       break;
     case 1:
@@ -105,17 +117,30 @@ void adminMenu(Product *prod, unsigned int *total, unsigned int *uid,
       printf(CYN "===== Add New Product ===== \n" reset);
       (*size)++;
       prod = realloc(prod, ((*size) * sizeof(Product)));
+      if (!prod) {
+        printf(RED "Error: Memory allocation failed.\n" reset);
+        logEvent(LOG_ERROR, session->username, "REALLOC_FAIL",
+                 "Failed to allocate memory for new product");
+        exit = 1;
+        break;
+      }
       addProduct(prod, total, uid, viewLimit);
+      logEvent(LOG_AUDIT, session->username, "ADD_PRODUCT",
+               "Product added successfully");
       break;
     case 3:
       ClearScreen();
       printf(CYN "===== Update Existing Product ===== \n\n" reset);
       updateProduct(prod, total, viewLimit);
+      logEvent(LOG_AUDIT, session->username, "UPDATE_PRODUCT",
+               "Product updated");
       break;
     case 4:
       ClearScreen();
       printf(CYN "===== Delete Existing Product ===== \n\n" reset);
       deleteProduct(prod, total, viewLimit);
+      logEvent(LOG_AUDIT, session->username, "DELETE_PRODUCT",
+               "Product deleted");
       break;
     case 5:
       ClearScreen();
@@ -125,11 +150,14 @@ void adminMenu(Product *prod, unsigned int *total, unsigned int *uid,
       ClearScreen();
       printf(CYN "===== Sell Product ===== \n\n" reset);
       sellProduct(prod, total, viewLimit);
+      logEvent(LOG_AUDIT, session->username, "SELL_PRODUCT", "Product sold");
       break;
     case 7:
       ClearScreen();
       printf(CYN "===== Restock Product ===== \n\n" reset);
       restockProduct(prod, total, viewLimit);
+      logEvent(LOG_AUDIT, session->username, "RESTOCK_PRODUCT",
+               "Product restocked");
       break;
     case 8:
       ClearScreen();
@@ -149,6 +177,14 @@ void employeeMenu(Product *prod, unsigned int *total, unsigned int *viewLimit,
   unsigned short exit = 0;
 
   while (!exit) {
+    // Check session timeout before each action
+    if (!checkSessionTimeout(session)) {
+      logEvent(LOG_AUDIT, session->username, "SESSION_TIMEOUT",
+               "Employee session expired due to inactivity");
+      exit = 1;
+      break;
+    }
+
     printf(CYN "\n===== Inventory Management [Employee: %s] ===== \n" reset,
            session->username);
     printf("----------------------------------------- \n");
@@ -162,9 +198,12 @@ void employeeMenu(Product *prod, unsigned int *total, unsigned int *viewLimit,
     fgets(input, 10, stdin);
     int choice = atoi(input);
 
+    updateSessionActivity(session);
+
     switch (choice) {
     case 0:
       printf("Exiting. \n");
+      logEvent(LOG_AUDIT, session->username, "LOGOUT", "Employee logged out");
       exit = 1;
       break;
     case 1:
@@ -180,11 +219,14 @@ void employeeMenu(Product *prod, unsigned int *total, unsigned int *viewLimit,
       ClearScreen();
       printf(CYN "===== Sell Product ===== \n\n" reset);
       sellProduct(prod, total, viewLimit);
+      logEvent(LOG_AUDIT, session->username, "SELL_PRODUCT", "Product sold");
       break;
     case 4:
       ClearScreen();
       printf(CYN "===== Restock Product ===== \n\n" reset);
       restockProduct(prod, total, viewLimit);
+      logEvent(LOG_AUDIT, session->username, "RESTOCK_PRODUCT",
+               "Product restocked");
       break;
     default:
       ClearScreen();
@@ -195,8 +237,11 @@ void employeeMenu(Product *prod, unsigned int *total, unsigned int *viewLimit,
 }
 
 int main(void) {
+  // --- Initialize Logger ---
+  initLogger();
+
   // --- Authentication ---
-  Session session = {0, "", ROLE_EMPLOYEE, 0};
+  Session session = {0, "", ROLE_EMPLOYEE, 0, 0, 0};
 
   printf(CYN ""
              "  _____       _               _             "
@@ -210,8 +255,12 @@ int main(void) {
   seedDefaultAdmin();
 
   if (!login(&session)) {
+    logEvent(LOG_AUDIT, NULL, "LOGIN_FAILED",
+             "Maximum login attempts exceeded");
     return 1;
   }
+
+  logEvent(LOG_AUDIT, session.username, "LOGIN_SUCCESS", "User logged in");
 
   ClearScreen();
 
@@ -221,7 +270,29 @@ int main(void) {
   unsigned int *uid = (unsigned int *)malloc(sizeof(unsigned int));
   unsigned int *viewLimit = (unsigned int *)malloc(sizeof(unsigned int));
 
-  Product *prod = initiate(prod, total, uid, size, viewLimit);
+  if (!size || !total || !uid || !viewLimit) {
+    printf(RED "Error: Memory allocation failed. Cannot start.\n" reset);
+    logEvent(LOG_ERROR, session.username, "MALLOC_FAIL",
+             "Failed to allocate startup memory");
+    free(size);
+    free(total);
+    free(uid);
+    free(viewLimit);
+    return 1;
+  }
+
+  Product *prod = initiate(NULL, total, uid, size, viewLimit);
+
+  if (!prod) {
+    printf(RED "Error: Could not initialize inventory.\n" reset);
+    logEvent(LOG_ERROR, session.username, "INIT_FAIL",
+             "Failed to initialize inventory data");
+    free(size);
+    free(total);
+    free(uid);
+    free(viewLimit);
+    return 1;
+  }
 
   printf(CYN ""
              "  _____       _               _             "
@@ -240,6 +311,7 @@ int main(void) {
   }
 
   // --- Cleanup ---
+  logoutSession(&session);
   free(prod);
   free(total);
   free(uid);

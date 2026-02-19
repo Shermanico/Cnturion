@@ -5,16 +5,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <product.h>
 #include <color.h>
+#include <product.h>
 
 #define DATA "data/Inventory.txt"
 #define CSV "data/Inventory.csv"
 #define INI "config.ini"
 
-void readINI(unsigned int *viewLimit);
+// Returns 0 on success, -1 on error
+int readINI(unsigned int *viewLimit);
+
+// Returns total count, or 0 on error
 unsigned int totalProductCSV();
-void writeCSV(Product *prod, unsigned int *total);
-void readCSV(Product *prod);
+
+// Returns 0 on success, -1 on error
+int writeCSV(Product *prod, unsigned int *total);
+
+// Returns 0 on success, -1 on error
+int readCSV(Product *prod);
 
 #endif

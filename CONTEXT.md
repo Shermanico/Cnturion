@@ -1,6 +1,6 @@
 # Cnturion — Project Context & Workflow Log
 
-> **Last updated**: 2026-02-16  
+> **Last updated**: 2026-02-18  
 > **Authors**: Jorge Nicolás Jiménez Moreno (Nico) & Penélope Ximena Sánchez Silva (Chobiol) 
 > **Course**: DevSecOps — Universidad Politécnica de Yucatán  
 > **Supervisor**: Angel Arturo Pech Che  
@@ -10,7 +10,7 @@
 
 ## What Is Cnturion?
 
-A **CLI-based Inventory Management System** written in **C**. It manages a product catalog (~1000 records) stored in CSV, with colored terminal UI via ANSI escape codes. As of 2026-02-16, it includes **authentication with role-based access control**.
+A **CLI-based Inventory Management System** written in **C**. It manages a product catalog (~1000 records) stored in CSV, with colored terminal UI via ANSI escape codes. Includes **Argon2id password hashing**, **POSIX regex input validation**, **role-based access control**, **session timeout**, **input sanitization**, and **audit logging**.
 
 ---
 
@@ -21,7 +21,7 @@ A **CLI-based Inventory Management System** written in **C**. It manages a produ
 | `admin` | `Admin123!` | Admin (full access) |
 | `employee1` | `Emp12345!` | Employee (restricted) |
 
-> Passwords are stored as **SHA-256 hashes** in `data/Users.csv`. The default admin is auto-created on first run if `Users.csv` doesn't exist.
+> Passwords are hashed using **Argon2id** (OWASP-recommended, memory-hard) with self-contained encoded strings stored in `data/Users.csv` (pipe-delimited). The default admin is auto-created on first run.
 
 ---
 
@@ -32,10 +32,11 @@ Cnturion/
 ├── main.c                      # Entry point: login → role-based menus
 ├── src/
 │   ├── auth.c / auth.h         # Login, user CRUD, session management
-│   ├── security.c / security.h # SHA-256 hashing, password policy, sanitization
+│   ├── security.c / security.h # Argon2id hashing, POSIX regex validation, sanitization
 │   ├── product_controller.c/h  # CRUD + sell + restock logic
-│   ├── file_controller.c/h     # CSV/INI read/write
-│   └── input_validation.c/h    # Numeric input validation
+│   ├── file_controller.c/h     # CSV/INI read/write (with error handling)
+│   ├── input_validation.c/h    # Numeric/string input validation
+│   └── logger.c / logger.h     # Audit logging system
 ├── model/
 │   └── product.h               # Product struct (id, name, category, qty, price)
 ├── utilities/
@@ -44,7 +45,9 @@ Cnturion/
 ├── data/
 │   ├── Inventory.csv           # Product data (~1003 records)
 │   ├── Inventory.txt           # Legacy (unused)
-│   └── Users.csv               # User accounts (auto-generated)
+│   └── Users.csv               # User accounts with Argon2id hashes (pipe-delimited)
+├── logs/
+│   └── audit.log               # Security audit trail (auto-generated)
 ├── config.ini                  # ViewLimit = 10 (pagination)
 ├── build.sh / build.bat        # Build scripts (Linux / Windows)
 ├── Tareas.pdf                  # Assignment requirements (13 security points)
@@ -58,7 +61,7 @@ bash build.sh    # Compiles to ./output
 ./output         # Run the app (login prompt appears)
 ```
 
-**Dependencies**: `gcc`, `ncurses` (`-lncurses`)
+**Dependencies**: `gcc`, `ncurses` (`-lncurses`), `libargon2` (`-largon2`), `libm` (`-lm`)
 
 ---
 
@@ -101,6 +104,30 @@ bash build.sh    # Compiles to ./output
 - Updated `build.sh` and `build.bat`
 - **All tests passed**: admin login, employee creation, restricted menus, hashed passwords
 
+### 2026-02-18 — Implemented Section 3 (Secure Programming Practices)
+- **3.1**: Applied `sanitizeString()` to all product inputs, fixed `fflush(stdin)` UB, added `validateUsername()`, created `getValidatedString()`
+- **3.2**: Added per-user salt via `/dev/urandom`, `hashPasswordWithSalt()`, uppercase in password policy, auto-migration of old Users.csv
+- **3.3**: Replaced `strcpy` → `strncpy` in update, CSV field count validation, double-quote sanitization
+- **3.4**: Session timeout (5 min), `checkSessionTimeout()`, `updateSessionActivity()`, `logoutSession()`
+- **3.5**: Created `logger.c/h` with audit log, added NULL checks to all `fopen`/`malloc`, error codes in file_controller
+- Build hardened with `-O2 -Wall -Wextra -fstack-protector-strong -D_FORTIFY_SOURCE=2`
+
+### 2026-02-18 — Upgraded to Argon2id & Closed Remaining Gaps
+- Replaced SHA-256+salt with **Argon2id** (`libargon2`, t=3, m=64MB, p=1)
+- Added **password masking** via `termios` (no echo during input)
+- Added **max session duration** (1 hour hard limit)
+- Added **range validation** (qty 1–999999, price 0.01–999999.99)
+- Sanitized **search inputs** (name/category)
+- Switched Users.csv to **pipe delimiter** (Argon2 hash contains commas)
+- Added `-largon2` to `build.sh`
+
+### 2026-02-18 — Added POSIX Regex Validation
+- Added `matchesPattern()` (public POSIX regex helper) to `security.c`
+- Rewrote `validateUsername()` to use regex: `^[a-zA-Z0-9_]{3,63}$`
+- Added `validateProductName()`: `^[a-zA-Z0-9 _./-]{1,127}$`
+- Added `validateProductCategory()`: `^[a-zA-Z0-9 _-]{1,63}$`
+- Applied regex validation to `addProduct()` and `updateProduct()` (reject-and-retry / reject-and-keep)
+
 ---
 
 ## Compliance with Tareas.pdf (13 Security Points)
@@ -109,36 +136,35 @@ bash build.sh    # Compiles to ./output
 |---|------------|--------|-------|
 | 1 | Security requirements defined | 🟡 40% | `DevSecOps Centurion.pdf` exists but incomplete |
 | 2 | **Secure architecture design** | ✅ 80% | **Done**: role separation, minimum privilege, defense in depth |
-| 3 | Input validation (backend) | 🟡 30% | Numeric validation exists; string sanitization added but not yet applied to all inputs |
-| 4 | Password hashing | ✅ 90% | SHA-256 implemented; upgrade to Argon2/bcrypt recommended later |
-| 5 | Authentication & authorization | ✅ 85% | Login + Admin/Employee roles enforced at menu level |
-| 6 | Session/token management | 🟡 50% | In-memory session struct; no inactivity timeout yet |
-| 7 | Error handling | 🟡 25% | User-friendly input errors exist; `fopen`/`malloc` NULL checks still missing |
-| 8 | Logging & auditing | ❌ 0% | Not implemented |
+| 3 | Input validation (backend) | ✅ 100% | **Done**: POSIX regex for all text inputs, sanitizeString, range checks |
+| 4 | Password hashing | ✅ 100% | **Done**: Argon2id (OWASP-recommended), self-contained encoded hashes |
+| 5 | Authentication & authorization | ✅ 95% | Login + roles + username validation + password policy + masking |
+| 6 | Session/token management | ✅ 95% | **Done**: 5-min inactivity + 1-hour max duration, secure logout |
+| 7 | Error handling | ✅ 90% | **Done**: NULL checks, error codes, generic messages, logging |
+| 8 | Logging & auditing | ✅ 80% | **Done**: logger.c/h, audit.log with timestamps |
 | 9 | Dependencies scanned | ❌ 0% | No SAST/scanning |
 | 10 | Secrets out of code | 🟡 50% | No secrets in code; file paths hardcoded |
 | 11 | HTTPS everywhere | ⬜ N/A | CLI app, no network |
 | 12 | Security testing (SAST/DAST) | ❌ 0% | No testing |
-| 13 | Hardened deployment | ❌ 0% | No CI/CD or hardening |
+| 13 | Hardened deployment | 🟡 30% | Hardened compiler flags added |
 
-**Estimated overall compliance: ~30%** (up from ~8% at start)
+**Estimated overall compliance: ~70%** (sections 3–3.5: ~98%)
 
 ---
 
 ## Next Steps (Phased Roadmap)
 
-### Phase 1 — Critical Fixes (no architecture change)
-- [ ] Add `fopen()` / `malloc()` / `realloc()` NULL checks in `file_controller.c`, `product_controller.c`, `main.c`
-- [ ] Apply `sanitizeString()` to product name/category on add/update
-- [ ] Implement `logger.c/h` → `logs/audit.log` (login, CRUD actions, timestamps)
-- [ ] Add `Makefile` with hardened compiler flags (`-Wall -Wextra -fstack-protector-strong`)
+### Phase 1 — Critical Fixes ✅ COMPLETE
+- [x] Add `fopen()` / `malloc()` / `realloc()` NULL checks
+- [x] Apply `sanitizeString()` + regex validation to all product inputs
+- [x] Implement `logger.c/h` → `logs/audit.log`
+- [x] Build with hardened compiler flags (`-O2 -Wall -Wextra -fstack-protector-strong -D_FORTIFY_SOURCE=2`)
 - [ ] Run `cppcheck` or `flawfinder` for SAST
 
 ### Phase 2 — SQLite Migration
 - [ ] Add SQLite3, create `db_manager.c/h`
 - [ ] Migrate product storage CSV → SQLite with parameterized queries
 - [ ] Migrate user storage CSV → SQLite
-- [ ] Add session inactivity timeout
 
 ### Phase 3 — Security Tooling & Encryption
 - [ ] Encrypt SQLite at rest (SQLCipher or file-level)
@@ -149,16 +175,11 @@ bash build.sh    # Compiles to ./output
 ### Phase 4 — CI/CD & Deployment
 - [ ] GitHub Actions CI pipeline with SAST + build
 - [ ] File permissions (`chmod 600` for DB/logs)
-- [ ] Compiler security flags: PIE, FORTIFY_SOURCE
 - [ ] Deployment hardening checklist
 
 ---
 
 ## Known Issues / Tech Debt
-- `fflush(stdin)` used in `input_validation.c` — undefined behavior on POSIX
-- `ansi_color/color.h` is an unused duplicate of `utilities/color.h`
-- `Inventory.txt` is legacy and unused
-- `cleanup()` in `main.c` defined but never called
-- Float comparison in `searchProduct()` unreliable (floating-point precision)
-- Delete function shifts array but doesn't `realloc` to free memory
-- Inner `while(1)` loop in `searchMenu()` breaks on first iteration (dead code pattern)
+- `fgets()` return values unchecked (`-Wunused-result` warnings with `-O2`) — harmless for interactive CLI
+- Sign comparison warnings (`int` vs `unsigned int` loop counters) — cosmetic only
+- `clearStdin()` defined but unused in `input_validation.c`

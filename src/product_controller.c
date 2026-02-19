@@ -1,4 +1,6 @@
+#include <math.h>
 #include <product_controller.h>
+#include <security.h>
 
 void simpleView(Product *prod, unsigned int *total, unsigned int *viewLimit,
                 unsigned int target, unsigned int type) {
@@ -103,7 +105,7 @@ void listProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
   if (*total == 0) {
     printf(RED "No products to view\n" reset);
     printf("Press enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
     return;
   }
@@ -157,7 +159,7 @@ void listProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
     } else {
       state = 0;
       printf("Press enter to continue...");
-      int c = getchar();
+      getchar();
       ClearScreen();
     }
   }
@@ -171,27 +173,40 @@ void addProduct(Product *prod, unsigned int *total, unsigned int *uid,
   printf("Product Name: ");
   fgets(prod[*total].name, 128, stdin);
   prod[*total].name[strcspn(prod[*total].name, "\n")] = 0;
-  while (strcmp(prod[*total].name, "") == 0) {
-    printf(RED "Product Name cannot be left empty !" reset " Enter again : ");
+  while (!validateProductName(prod[*total].name)) {
+    printf(RED
+           "Invalid name! Use letters, numbers, spaces, hyphens, dots." reset
+           " Enter again: ");
     fgets(prod[*total].name, 128, stdin);
     prod[*total].name[strcspn(prod[*total].name, "\n")] = 0;
   }
+  sanitizeString(prod[*total].name, 127);
 
   printf("Product Category: ");
   fgets(prod[*total].category, 64, stdin);
   prod[*total].category[strcspn(prod[*total].category, "\n")] = 0;
-  while (strcmp(prod[*total].category, "") == 0) {
-    printf(RED "Product category cannot be left empty !" reset
-               " Enter again : ");
+  while (!validateProductCategory(prod[*total].category)) {
+    printf(RED "Invalid category! Use letters, numbers, spaces, hyphens." reset
+               " Enter again: ");
     fgets(prod[*total].category, 64, stdin);
     prod[*total].category[strcspn(prod[*total].category, "\n")] = 0;
   }
+  sanitizeString(prod[*total].category, 63);
 
   printf("Product Quantity: ");
   getDigit(&prod[*total].quantity);
+  while (prod[*total].quantity == 0 || prod[*total].quantity > 999999) {
+    printf(RED "Quantity must be between 1 and 999999!" reset " Enter again: ");
+    getDigit(&prod[*total].quantity);
+  }
 
   printf("Product Price: ");
   getFloat(&prod[*total].price);
+  while (prod[*total].price <= 0 || prod[*total].price > 999999.99f) {
+    printf(RED "Price must be between 0.01 and 999999.99!" reset
+               " Enter again: ");
+    getFloat(&prod[*total].price);
+  }
 
   unsigned int target = (*total);
   (*total)++;
@@ -203,7 +218,7 @@ void addProduct(Product *prod, unsigned int *total, unsigned int *uid,
          prod[*total - 1].id);
 
   printf("Press enter to continue...");
-  int c = getchar();
+  getchar();
   ClearScreen();
   // listProduct(prod, total, viewLimit);
   writeCSV(prod, total);
@@ -230,17 +245,18 @@ void deleteProduct(Product *prod, unsigned int *total,
   if (exist) {
     ClearScreen();
     (*total)--;
+    prod = realloc(prod, (*total > 0 ? *total : 1) * sizeof(Product));
     writeCSV(prod, total);
     simpleView(prod, total, viewLimit, item, 2);
     printf(CYN "Product with ID %d deleted successfully\n" reset, id);
 
     printf("\nPress enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
   } else {
     printf(RED "Product with ID %d does not exist.\n" reset, id);
     printf("\nPress enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
   }
 }
@@ -274,7 +290,13 @@ void updateProduct(Product *prod, unsigned int *total,
     fgets(input, 100, stdin);
     if (*input != '\n') {
       input[strcspn(input, "\n")] = 0;
-      strcpy(prod[item].name, input);
+      if (validateProductName(input)) {
+        strncpy(prod[item].name, input, 127);
+        prod[item].name[127] = '\0';
+        sanitizeString(prod[item].name, 127);
+      } else {
+        printf(RED "Invalid name format, keeping original.\n" reset);
+      }
     }
 
     printf(reset "%-20s: " YEL "%10s" reset " -> " CYN, "Product Category",
@@ -283,7 +305,13 @@ void updateProduct(Product *prod, unsigned int *total,
     fgets(input, 100, stdin);
     if (*input != '\n') {
       input[strcspn(input, "\n")] = 0;
-      strcpy(prod[item].category, input);
+      if (validateProductCategory(input)) {
+        strncpy(prod[item].category, input, 63);
+        prod[item].category[63] = '\0';
+        sanitizeString(prod[item].category, 63);
+      } else {
+        printf(RED "Invalid category format, keeping original.\n" reset);
+      }
     }
 
     printf(reset "%-20s: " YEL "%10d" reset " -> " CYN, "Product Quantity",
@@ -320,12 +348,12 @@ void updateProduct(Product *prod, unsigned int *total,
     printf(GRN "Product with ID %d updated successfully.\n" reset, id);
 
     printf("\nPress enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
   } else {
     printf(RED "Product with ID %d does not exist.\n" reset, id);
     printf("\nPress enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
   }
   writeCSV(prod, total);
@@ -335,6 +363,10 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
                    unsigned int action) {
   unsigned size = *viewLimit;
   Product *result = (Product *)malloc((size) * sizeof(Product));
+  if (!result) {
+    printf(RED "Memory allocation error.\n" reset);
+    return;
+  }
   unsigned int digit;
   char string[128];
   float number = 0;
@@ -361,6 +393,7 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
     printf("Name : ");
     fgets(string, 128, stdin);
     string[strcspn(string, "\n")] = 0;
+    sanitizeString(string, 127);
 
     for (int i = 0; i < *total; i++) {
       if (strcmp(prod[i].name, string) == 0) {
@@ -378,6 +411,7 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
     printf("Category : ");
     fgets(string, 128, stdin);
     string[strcspn(string, "\n")] = 0;
+    sanitizeString(string, 127);
 
     for (int i = 0; i < *total; i++) {
       if (strcmp(prod[i].category, string) == 0) {
@@ -412,7 +446,7 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
     getFloat(&number);
 
     for (int i = 0; i < *total; i++) {
-      if (prod[i].price == number) {
+      if (fabs(prod[i].price - number) < 0.01f) {
         result[*k] = prod[i];
         (*k)++;
         if (*k >= size) {
@@ -453,7 +487,7 @@ void sellProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
   if (!exist) {
     printf(RED "Product with ID %d does not exist.\n" reset, id);
     printf("\nPress enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
     return;
   }
@@ -467,7 +501,7 @@ void sellProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
     printf(RED "Insufficient stock! Only %d available.\n" reset,
            prod[item].quantity);
     printf("\nPress enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
     return;
   }
@@ -475,7 +509,7 @@ void sellProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
   if (quantity == 0) {
     printf(RED "Quantity must be greater than 0.\n" reset);
     printf("\nPress enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
     return;
   }
@@ -495,7 +529,7 @@ void sellProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
   writeCSV(prod, total);
 
   printf("\nPress enter to continue...");
-  int c = getchar();
+  getchar();
   ClearScreen();
 }
 
@@ -525,7 +559,7 @@ void restockProduct(Product *prod, unsigned int *total,
   if (!exist) {
     printf(RED "Product with ID %d does not exist.\n" reset, id);
     printf("\nPress enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
     return;
   }
@@ -538,7 +572,7 @@ void restockProduct(Product *prod, unsigned int *total,
   if (quantity == 0) {
     printf(RED "Quantity must be greater than 0.\n" reset);
     printf("\nPress enter to continue...");
-    int c = getchar();
+    getchar();
     ClearScreen();
     return;
   }
@@ -555,7 +589,7 @@ void restockProduct(Product *prod, unsigned int *total,
   writeCSV(prod, total);
 
   printf("\nPress enter to continue...");
-  int c = getchar();
+  getchar();
   ClearScreen();
 }
 
