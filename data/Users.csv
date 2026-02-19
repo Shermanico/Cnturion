@@ -1,0 +1,3 @@
+ID|Username|PasswordHash|Role
+1|admin|$argon2id$v=19$m=65536,t=3,p=1$KCrMvzJZOsFFw6ivP01qjw$bDEXSlhnoj2aqVZDqQDKu1saM0CWjeymhPeY0oW0pkc|0
+2|employee|$argon2id$v=19$m=65536,t=3,p=1$ttsvge9RBU72c6H2KpUtug$q2H+VBC4vB+n2NEdZKAlZ41ObENeVi7QBLVpu4DBMhE|1

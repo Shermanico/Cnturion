@@ -1,6 +1,6 @@
 # Cnturion — Project Context & Workflow Log
 
-> **Last updated**: 2026-02-18  
+> **Last updated**: 2026-02-19  
 > **Authors**: Jorge Nicolás Jiménez Moreno (Nico) & Penélope Ximena Sánchez Silva (Chobiol) 
 > **Course**: DevSecOps — Universidad Politécnica de Yucatán  
 > **Supervisor**: Angel Arturo Pech Che  
@@ -10,7 +10,7 @@
 
 ## What Is Cnturion?
 
-A **CLI-based Inventory Management System** written in **C**. It manages a product catalog (~1000 records) stored in CSV, with colored terminal UI via ANSI escape codes. Includes **Argon2id password hashing**, **POSIX regex input validation**, **role-based access control**, **session timeout**, **input sanitization**, and **audit logging**.
+A **CLI-based Inventory Management System** written in **C**, with **cross-platform support** (Linux & Windows). It manages a product catalog (~1000 records) stored in CSV, with colored terminal UI via ANSI escape codes. Includes **Argon2id password hashing**, **POSIX regex input validation** (manual validation on Windows), **role-based access control**, **session timeout**, **input sanitization**, and **audit logging**.
 
 ---
 
@@ -32,7 +32,7 @@ Cnturion/
 ├── main.c                      # Entry point: login → role-based menus
 ├── src/
 │   ├── auth.c / auth.h         # Login, user CRUD, session management
-│   ├── security.c / security.h # Argon2id hashing, POSIX regex validation, sanitization
+│   ├── security.c / security.h # Argon2id hashing, validation (POSIX regex on Linux, manual on Windows), sanitization
 │   ├── product_controller.c/h  # CRUD + sell + restock logic
 │   ├── file_controller.c/h     # CSV/INI read/write (with error handling)
 │   ├── input_validation.c/h    # Numeric/string input validation
@@ -49,7 +49,9 @@ Cnturion/
 ├── logs/
 │   └── audit.log               # Security audit trail (auto-generated)
 ├── config.ini                  # ViewLimit = 10 (pagination)
-├── build.sh / build.bat        # Build scripts (Linux / Windows)
+├── build.sh / build.bat        # Build scripts (Linux / Windows native)
+├── cross-build.sh              # Cross-compilation script (Linux→Windows + native Linux)
+├── deps/                       # Auto-downloaded dependencies (Argon2 source for Windows)
 ├── Tareas.pdf                  # Assignment requirements (13 security points)
 ├── DevSecOps Centurion.pdf     # Security requirements document (WIP)
 └── ansi_color/color.h          # Duplicate of utilities/color.h (unused)
@@ -57,11 +59,18 @@ Cnturion/
 
 ### Build & Run
 ```bash
-bash build.sh    # Compiles to ./output
-./output         # Run the app (login prompt appears)
+# Linux (native)
+bash build.sh             # Compiles to ./output
+./output                  # Run the app
+
+# Cross-compile (from Linux)
+./cross-build.sh          # Build both Linux + Windows
+./cross-build.sh linux    # Linux only  → ./output
+./cross-build.sh windows  # Windows only → ./output.exe
 ```
 
-**Dependencies**: `gcc`, `ncurses` (`-lncurses`), `libargon2` (`-largon2`), `libm` (`-lm`)
+**Linux dependencies**: `gcc`, `ncurses` (`-lncurses`), `libargon2` (`-largon2`), `libm` (`-lm`)  
+**Windows cross-compile**: `mingw-w64-gcc` (Arch: `sudo pacman -S mingw-w64-gcc`). Argon2 source is auto-downloaded and embedded; no external library needed on Windows.
 
 ---
 
@@ -127,6 +136,15 @@ bash build.sh    # Compiles to ./output
 - Added `validateProductName()`: `^[a-zA-Z0-9 _./-]{1,127}$`
 - Added `validateProductCategory()`: `^[a-zA-Z0-9 _-]{1,63}$`
 - Applied regex validation to `addProduct()` and `updateProduct()` (reject-and-retry / reject-and-keep)
+
+### 2026-02-19 — Cross-Platform Compilation (Linux → Windows)
+- Created `cross-build.sh` — builds for Linux (native) and Windows (cross-compile via `mingw-w64`)
+- Argon2 source is auto-cloned into `deps/` and **embedded** directly (no library install needed on Windows)
+- Windows `.exe` uses **`-static`** linking for a fully self-contained portable binary
+- **`auth.c`**: Added `#ifdef _WIN32` for password input — `conio.h` + `_getch()` on Windows, `termios.h` on Linux
+- **`security.c`**: Replaced POSIX `regex.h` with manual C string validation on Windows; replaced `/dev/urandom` with `BCryptGenRandom`
+- **`logger.c`**: Fixed `mkdir()` call — Windows takes 1 argument (no permissions), POSIX takes 2
+- Updated `build.bat` to include `-largon2 -lbcrypt`
 
 ---
 

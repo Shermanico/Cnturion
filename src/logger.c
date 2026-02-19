@@ -19,7 +19,11 @@ int initLogger(void) {
   // Create logs directory if it doesn't exist
   struct stat st = {0};
   if (stat(LOG_DIR, &st) == -1) {
+#ifdef _WIN32
+    if (mkdir(LOG_DIR) != 0) {
+#else
     if (mkdir(LOG_DIR, 0700) != 0) {
+#endif
       fprintf(stderr, "Warning: Could not create logs directory.\n");
       return 0;
     }

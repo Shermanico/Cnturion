@@ -1,11 +1,32 @@
 #include <auth.h>
+
+#ifdef _WIN32
+#include <conio.h>
+#else
 #include <termios.h>
 #include <unistd.h>
+#endif
 
 /* ---------- helpers ---------- */
 
 // Read password without echoing characters to terminal
 static void readPassword(char *buf, int maxLen) {
+#ifdef _WIN32
+  int i = 0;
+  int ch;
+  while (i < maxLen - 1) {
+    ch = _getch();
+    if (ch == '\r' || ch == '\n') break;
+    if (ch == '\b' || ch == 127) {
+      if (i > 0) { i--; printf("\b \b"); }
+      continue;
+    }
+    buf[i++] = (char)ch;
+    printf("*");
+  }
+  buf[i] = '\0';
+  printf("\n");
+#else
   struct termios oldt, newt;
   tcgetattr(STDIN_FILENO, &oldt);
   newt = oldt;
@@ -17,6 +38,7 @@ static void readPassword(char *buf, int maxLen) {
 
   tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // Restore echo
   printf("\n"); // Newline since user's Enter wasn't echoed
+#endif
 }
 
 static unsigned int totalUsersCSV() {

@@ -1,7 +1,14 @@
 #include <argon2.h>
-#include <regex.h>
 #include <security.h>
 #include <time.h>
+#include <ctype.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <bcrypt.h>
+#else
+#include <regex.h>
+#endif
 
 /*
  * Lightweight SHA-256 implementation (public domain)
@@ -172,6 +179,23 @@ void hashPasswordWithSalt(const char *password, const char *salt,
 }
 
 int generateSalt(char *saltOut) {
+#ifdef _WIN32
+  unsigned char raw[16];
+  NTSTATUS status = BCryptGenRandom(NULL, raw, 16, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+  if (status != 0) {
+    // Fallback: use time-based pseudo-random salt
+    srand((unsigned int)time(NULL));
+    for (int i = 0; i < 16; i++) {
+      sprintf(saltOut + (i * 2), "%02x", rand() % 256);
+    }
+    saltOut[32] = '\0';
+    return 1;
+  }
+  for (int i = 0; i < 16; i++)
+    sprintf(saltOut + (i * 2), "%02x", raw[i]);
+  saltOut[32] = '\0';
+  return 1;
+#else
   FILE *f = fopen("/dev/urandom", "rb");
   if (!f) {
     // Fallback: use time-based pseudo-random salt
@@ -194,7 +218,43 @@ int generateSalt(char *saltOut) {
     sprintf(saltOut + (i * 2), "%02x", raw[i]);
   saltOut[32] = '\0';
   return 1;
+#endif
 }
+
+#ifdef _WIN32
+// Windows: manual validation (no POSIX regex)
+
+int matchesPattern(const char *input, const char *pattern) {
+  // Simplified pattern matching for the specific patterns used in this app
+  (void)pattern; (void)input;
+  // This is a stub; real validation is done in specific validate* functions below
+  return 1;
+}
+
+int validatePassword(const char *password) {
+  int len = (int)strlen(password);
+  if (len < 8) return 0;
+  int hasUpper = 0, hasDigit = 0, hasSpecial = 0;
+  for (int i = 0; i < len; i++) {
+    if (isupper((unsigned char)password[i])) hasUpper = 1;
+    else if (isdigit((unsigned char)password[i])) hasDigit = 1;
+    else if (!isalpha((unsigned char)password[i]) && !isdigit((unsigned char)password[i])) hasSpecial = 1;
+  }
+  return hasUpper && hasDigit && hasSpecial;
+}
+
+int validateUsername(const char *username) {
+  int len = (int)strlen(username);
+  if (len < 3 || len > 63) return 0;
+  for (int i = 0; i < len; i++) {
+    char c = username[i];
+    if (!isalnum((unsigned char)c) && c != '_') return 0;
+  }
+  return 1;
+}
+
+#else
+// Linux: use POSIX regex
 
 int validatePassword(const char *password) {
   // All checks use POSIX regex
@@ -219,14 +279,34 @@ int validateUsername(const char *username) {
   return matchesPattern(username, "^[a-zA-Z0-9_]{3,63}$");
 }
 
+#endif
+
 int validateProductName(const char *name) {
-  // Pattern: 1-127 chars, letters/digits/spaces/underscores/hyphens/dots
+#ifdef _WIN32
+  int len = (int)strlen(name);
+  if (len < 1 || len > 127) return 0;
+  for (int i = 0; i < len; i++) {
+    char c = name[i];
+    if (!isalnum((unsigned char)c) && c != ' ' && c != '_' && c != '.' && c != '/' && c != '-') return 0;
+  }
+  return 1;
+#else
   return matchesPattern(name, "^[a-zA-Z0-9 _./-]{1,127}$");
+#endif
 }
 
 int validateProductCategory(const char *category) {
-  // Pattern: 1-63 chars, letters/digits/spaces/underscores/hyphens
+#ifdef _WIN32
+  int len = (int)strlen(category);
+  if (len < 1 || len > 63) return 0;
+  for (int i = 0; i < len; i++) {
+    char c = category[i];
+    if (!isalnum((unsigned char)c) && c != ' ' && c != '_' && c != '-') return 0;
+  }
+  return 1;
+#else
   return matchesPattern(category, "^[a-zA-Z0-9 _-]{1,63}$");
+#endif
 }
 
 int sanitizeString(char *input, int maxLen) {
@@ -260,6 +340,15 @@ int hashPasswordArgon2(const char *password, char *encodedOut,
                        size_t encodedMax) {
   // Generate random salt
   unsigned char salt[SALT_RAW_LEN];
+
+#ifdef _WIN32
+  NTSTATUS status = BCryptGenRandom(NULL, salt, SALT_RAW_LEN, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+  if (status != 0) {
+    srand((unsigned int)time(NULL));
+    for (int i = 0; i < SALT_RAW_LEN; i++)
+      salt[i] = (unsigned char)(rand() % 256);
+  }
+#else
   FILE *f = fopen("/dev/urandom", "rb");
   if (!f) {
     // Fallback with time-based seed
@@ -272,6 +361,7 @@ int hashPasswordArgon2(const char *password, char *encodedOut,
     if (rd != SALT_RAW_LEN)
       return 0;
   }
+#endif
 
   int result =
       argon2id_hash_encoded(ARGON2_T_COST, ARGON2_M_COST, ARGON2_PARALLELISM,

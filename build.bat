@@ -5,6 +5,6 @@ gcc main.c ^
   -I./model/ ^
   -I./utilities/ ^
   ./utilities/clear.c ^
-  -lm ^
+  -lm -largon2 -lbcrypt ^
   -Wall -Wextra ^
   -o output.exe
