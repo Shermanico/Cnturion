@@ -16,9 +16,13 @@ static void readPassword(char *buf, int maxLen) {
   int ch;
   while (i < maxLen - 1) {
     ch = _getch();
-    if (ch == '\r' || ch == '\n') break;
+    if (ch == '\r' || ch == '\n')
+      break;
     if (ch == '\b' || ch == 127) {
-      if (i > 0) { i--; printf("\b \b"); }
+      if (i > 0) {
+        i--;
+        printf("\b \b");
+      }
       continue;
     }
     buf[i++] = (char)ch;
@@ -114,7 +118,7 @@ static void writeUserCSV(User *user) {
   if (!exists) {
     fprintf(f, "ID|Username|PasswordHash|Role\n");
   }
-  fprintf(f, "%d|%s|%s|%d\n", user->id, user->username, user->password_hash,
+  fprintf(f, "%u|%s|%s|%d\n", user->id, user->username, user->password_hash,
           user->role);
   fclose(f);
 }
@@ -355,7 +359,7 @@ void listUsers(Session *session) {
   printf("--------------------------------------------------\n");
 
   for (int i = 0; i < count; i++) {
-    printf("%-5d| %-20s| %-10s|\n", users[i].id, users[i].username,
+    printf("%-5u| %-20s| %-10s|\n", users[i].id, users[i].username,
            users[i].role == ROLE_ADMIN ? "Admin" : "Employee");
   }
   printf("--------------------------------------------------\n\n");

@@ -146,6 +146,17 @@ bash build.sh             # Compiles to ./output
 - **`logger.c`**: Fixed `mkdir()` call — Windows takes 1 argument (no permissions), POSIX takes 2
 - Updated `build.bat` to include `-largon2 -lbcrypt`
 
+### 2026-02-26 — SAST/DAST Security Testing & Bug Fixes
+- Ran **cppcheck** 2.19.1 (SAST) — found 5 errors, 30+ warnings
+- Ran **flawfinder** 2.0.19 (SAST) — 199 hits across 1906 SLOC with CWE mappings
+- Built with **AddressSanitizer** (DAST) — no runtime memory errors detected
+- Ran **arch-audit** (dependency scan) — 0 CVEs for argon2, ncurses, glibc
+- **Fixed**: 5 realloc memory leaks in `searchProduct()` (CWE-401) — used temp pointer pattern
+- **Fixed**: 2 null pointer dereferences after unchecked `malloc()` (CWE-476)
+- **Fixed**: 26 format specifier mismatches `%d` → `%u` for `unsigned int` (CWE-686) across `product_controller.c`, `auth.c`, `file_controller.c`
+- Post-fix cppcheck re-scan: **zero errors, zero warnings**
+- Full report saved to `extra/SAST_DAST_Report.md`
+
 ---
 
 ## Compliance with Tareas.pdf (13 Security Points)
@@ -160,13 +171,13 @@ bash build.sh             # Compiles to ./output
 | 6 | Session/token management | ✅ 95% | **Done**: 5-min inactivity + 1-hour max duration, secure logout |
 | 7 | Error handling | ✅ 90% | **Done**: NULL checks, error codes, generic messages, logging |
 | 8 | Logging & auditing | ✅ 80% | **Done**: logger.c/h, audit.log with timestamps |
-| 9 | Dependencies scanned | ❌ 0% | No SAST/scanning |
+| 9 | Dependencies scanned | ✅ 90% | `arch-audit` run — 0 CVEs for argon2, ncurses, glibc |
 | 10 | Secrets out of code | 🟡 50% | No secrets in code; file paths hardcoded |
 | 11 | HTTPS everywhere | ⬜ N/A | CLI app, no network |
-| 12 | Security testing (SAST/DAST) | ❌ 0% | No testing |
+| 12 | Security testing (SAST/DAST) | ✅ 80% | cppcheck + flawfinder (SAST), ASan (DAST), all bugs fixed |
 | 13 | Hardened deployment | 🟡 30% | Hardened compiler flags added |
 
-**Estimated overall compliance: ~70%** (sections 3–3.5: ~98%)
+**Estimated overall compliance: ~82%** (sections 3–3.5: ~98%, SAST/DAST: 80%)
 
 ---
 
@@ -177,7 +188,10 @@ bash build.sh             # Compiles to ./output
 - [x] Apply `sanitizeString()` + regex validation to all product inputs
 - [x] Implement `logger.c/h` → `logs/audit.log`
 - [x] Build with hardened compiler flags (`-O2 -Wall -Wextra -fstack-protector-strong -D_FORTIFY_SOURCE=2`)
-- [ ] Run `cppcheck` or `flawfinder` for SAST
+- [x] Run `cppcheck` and `flawfinder` for SAST
+- [x] Run AddressSanitizer for DAST
+- [x] Run `arch-audit` for dependency scanning
+- [x] Fix all critical/warning-level findings
 
 ### Phase 2 — SQLite Migration
 - [ ] Add SQLite3, create `db_manager.c/h`
@@ -201,3 +215,5 @@ bash build.sh             # Compiles to ./output
 - `fgets()` return values unchecked (`-Wunused-result` warnings with `-O2`) — harmless for interactive CLI
 - Sign comparison warnings (`int` vs `unsigned int` loop counters) — cosmetic only
 - `clearStdin()` defined but unused in `input_validation.c`
+- flawfinder level-4 `printf` CWE-134 findings are false positives (ANSI color macros, not user input)
+- flawfinder level-3 `srand()` CWE-327 applies only to Windows fallback (Linux uses `/dev/urandom`)

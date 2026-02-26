@@ -56,13 +56,13 @@ void simpleView(Product *prod, unsigned int *total, unsigned int *viewLimit,
     if (i == target - 1) {
       if (type == 0) {
         printf(GRN
-               "%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f| ADDED\n" reset,
+               "%-4d|    %-5u|  %-10s|  %-10s| %-10u|  %-10.2f| ADDED\n" reset,
                i + 1, prod[i].id, prod[i].name, prod[i].category,
                prod[i].quantity, prod[i].price);
       } else if (type == 1) {
         printf(
             GRN
-            "%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f| UPDATED\n" reset,
+            "%-4d|    %-5u|  %-10s|  %-10s| %-10u|  %-10.2f| UPDATED\n" reset,
             i + 1, prod[i].id, prod[i].name, prod[i].category, prod[i].quantity,
             prod[i].price);
       } else {
@@ -70,12 +70,12 @@ void simpleView(Product *prod, unsigned int *total, unsigned int *viewLimit,
             RED
             "%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f| DELETED\n" reset,
             0, 0, "Product", "is Null", 0, 0.00);
-        printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+        printf("%-4d|    %-5u|  %-10s|  %-10s| %-10u|  %-10.2f|\n", i + 1,
                prod[i].id, prod[i].name, prod[i].category, prod[i].quantity,
                prod[i].price);
       }
     } else {
-      printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+      printf("%-4d|    %-5u|  %-10s|  %-10s| %-10u|  %-10.2f|\n", i + 1,
              prod[i].id, prod[i].name, prod[i].category, prod[i].quantity,
              prod[i].price);
     }
@@ -120,7 +120,7 @@ void listProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
         "------------------------------------------------------------------\n");
 
     for (unsigned int i = start; i < end; i++) {
-      printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+      printf("%-4u|    %-5u|  %-10s|  %-10s| %-10u|  %-10.2f|\n", i + 1,
              prod[i].id, prod[i].name, prod[i].category, prod[i].quantity,
              prod[i].price);
     }
@@ -129,8 +129,8 @@ void listProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
 
     // Asking for pages to view only if
     if (*total > *viewLimit) {
-      printf("Current Page : " YEL "%-34d" reset " Total Pages: " RED
-             "%d\n" reset,
+      printf("Current Page : " YEL "%-34u" reset " Total Pages: " RED
+             "%u\n" reset,
              page + 1, totalPage);
       printf("Which page to view (Enter nothing to skip): ");
       unsigned int ask = 1;
@@ -168,7 +168,7 @@ void listProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
 void addProduct(Product *prod, unsigned int *total, unsigned int *uid,
                 unsigned int *viewLimit) {
   prod[*total].id = *uid + 1;
-  printf("UID: %d\n", prod[*total].id);
+  printf("UID: %u\n", prod[*total].id);
 
   printf("Product Name: ");
   fgets(prod[*total].name, 128, stdin);
@@ -214,7 +214,7 @@ void addProduct(Product *prod, unsigned int *total, unsigned int *uid,
 
   ClearScreen();
   simpleView(prod, total, viewLimit, target, 0);
-  printf(GRN "Product with ID %d added successfully\n\n" reset,
+  printf(GRN "Product with ID %u added successfully\n\n" reset,
          prod[*total - 1].id);
 
   printf("Press enter to continue...");
@@ -248,13 +248,13 @@ void deleteProduct(Product *prod, unsigned int *total,
     prod = realloc(prod, (*total > 0 ? *total : 1) * sizeof(Product));
     writeCSV(prod, total);
     simpleView(prod, total, viewLimit, item, 2);
-    printf(CYN "Product with ID %d deleted successfully\n" reset, id);
+    printf(CYN "Product with ID %u deleted successfully\n" reset, id);
 
     printf("\nPress enter to continue...");
     getchar();
     ClearScreen();
   } else {
-    printf(RED "Product with ID %d does not exist.\n" reset, id);
+    printf(RED "Product with ID %u does not exist.\n" reset, id);
     printf("\nPress enter to continue...");
     getchar();
     ClearScreen();
@@ -314,7 +314,7 @@ void updateProduct(Product *prod, unsigned int *total,
       }
     }
 
-    printf(reset "%-20s: " YEL "%10d" reset " -> " CYN, "Product Quantity",
+    printf(reset "%-20s: " YEL "%10u" reset " -> " CYN, "Product Quantity",
            prod[item].quantity);
     // fflush(stdin);
     fgets(input, 100, stdin);
@@ -345,13 +345,13 @@ void updateProduct(Product *prod, unsigned int *total,
     printf(reset);
     ClearScreen();
     simpleView(prod, total, viewLimit, item, 1);
-    printf(GRN "Product with ID %d updated successfully.\n" reset, id);
+    printf(GRN "Product with ID %u updated successfully.\n" reset, id);
 
     printf("\nPress enter to continue...");
     getchar();
     ClearScreen();
   } else {
-    printf(RED "Product with ID %d does not exist.\n" reset, id);
+    printf(RED "Product with ID %u does not exist.\n" reset, id);
     printf("\nPress enter to continue...");
     getchar();
     ClearScreen();
@@ -371,6 +371,11 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
   char string[128];
   float number = 0;
   unsigned int *k = (unsigned int *)malloc(sizeof(unsigned int));
+  if (!k) {
+    printf(RED "Memory allocation error.\n" reset);
+    free(result);
+    return;
+  }
   *k = 0;
 
   if (action == 1) {
@@ -383,7 +388,12 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
         (*k)++;
         if (*k >= size) {
           size++;
-          result = realloc(result, ((size) * sizeof(Product)));
+          Product *tmp = realloc(result, ((size) * sizeof(Product)));
+          if (!tmp) {
+            printf(RED "Memory error.\n" reset);
+            break;
+          }
+          result = tmp;
         }
       }
     }
@@ -401,7 +411,12 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
         (*k)++;
         if (*k >= size) {
           size++;
-          result = realloc(result, ((size) * sizeof(Product)));
+          Product *tmp = realloc(result, ((size) * sizeof(Product)));
+          if (!tmp) {
+            printf(RED "Memory error.\n" reset);
+            break;
+          }
+          result = tmp;
         }
       }
     }
@@ -419,7 +434,12 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
         (*k)++;
         if (*k >= size) {
           size++;
-          result = realloc(result, ((size) * sizeof(Product)));
+          Product *tmp = realloc(result, ((size) * sizeof(Product)));
+          if (!tmp) {
+            printf(RED "Memory error.\n" reset);
+            break;
+          }
+          result = tmp;
         }
       }
     }
@@ -435,7 +455,12 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
         (*k)++;
         if (*k >= size) {
           size++;
-          result = realloc(result, ((size) * sizeof(Product)));
+          Product *tmp = realloc(result, ((size) * sizeof(Product)));
+          if (!tmp) {
+            printf(RED "Memory error.\n" reset);
+            break;
+          }
+          result = tmp;
         }
       }
     }
@@ -451,7 +476,12 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
         (*k)++;
         if (*k >= size) {
           size++;
-          result = realloc(result, ((size) * sizeof(Product)));
+          Product *tmp = realloc(result, ((size) * sizeof(Product)));
+          if (!tmp) {
+            printf(RED "Memory error.\n" reset);
+            break;
+          }
+          result = tmp;
         }
       }
     }
@@ -485,20 +515,20 @@ void sellProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
   }
 
   if (!exist) {
-    printf(RED "Product with ID %d does not exist.\n" reset, id);
+    printf(RED "Product with ID %u does not exist.\n" reset, id);
     printf("\nPress enter to continue...");
     getchar();
     ClearScreen();
     return;
   }
 
-  printf("Product: " CYN "%s" reset " | Available stock: " YEL "%d" reset "\n",
+  printf("Product: " CYN "%s" reset " | Available stock: " YEL "%u" reset "\n",
          prod[item].name, prod[item].quantity);
   printf("Quantity to sell: ");
   getDigit(&quantity);
 
   if (quantity > prod[item].quantity) {
-    printf(RED "Insufficient stock! Only %d available.\n" reset,
+    printf(RED "Insufficient stock! Only %u available.\n" reset,
            prod[item].quantity);
     printf("\nPress enter to continue...");
     getchar();
@@ -521,10 +551,10 @@ void sellProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
   simpleView(prod, total, viewLimit, item, 1);
   printf(GRN "Sale completed!\n" reset);
   printf("  Product : %s\n", prod[item].name);
-  printf("  Sold    : %d units\n", quantity);
+  printf("  Sold    : %u units\n", quantity);
   printf("  Price   : $%.2f each\n", prod[item].price);
   printf(BGRN "  Total   : $%.2f\n" reset, totalPrice);
-  printf("  Stock   : %d remaining\n", prod[item].quantity);
+  printf("  Stock   : %u remaining\n", prod[item].quantity);
 
   writeCSV(prod, total);
 
@@ -557,14 +587,14 @@ void restockProduct(Product *prod, unsigned int *total,
   }
 
   if (!exist) {
-    printf(RED "Product with ID %d does not exist.\n" reset, id);
+    printf(RED "Product with ID %u does not exist.\n" reset, id);
     printf("\nPress enter to continue...");
     getchar();
     ClearScreen();
     return;
   }
 
-  printf("Product: " CYN "%s" reset " | Current stock: " YEL "%d" reset "\n",
+  printf("Product: " CYN "%s" reset " | Current stock: " YEL "%u" reset "\n",
          prod[item].name, prod[item].quantity);
   printf("Quantity to add: ");
   getDigit(&quantity);
@@ -583,8 +613,8 @@ void restockProduct(Product *prod, unsigned int *total,
   simpleView(prod, total, viewLimit, item, 1);
   printf(GRN "Restock completed!\n" reset);
   printf("  Product   : %s\n", prod[item].name);
-  printf("  Added     : %d units\n", quantity);
-  printf("  New stock : %d\n", prod[item].quantity);
+  printf("  Added     : %u units\n", quantity);
+  printf("  New stock : %u\n", prod[item].quantity);
 
   writeCSV(prod, total);
 
@@ -600,6 +630,9 @@ Product *initiate(Product *prod, unsigned int *total, unsigned int *uid,
   *total = totalProductCSV();
   *size = *total + 1;
   prod = (Product *)malloc((*size) * sizeof(Product));
+  if (!prod) {
+    return NULL;
+  }
   readCSV(prod);
   *uid = (*total == 0) ? 0 : prod[*total - 1].id;
   return prod;

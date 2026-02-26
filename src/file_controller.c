@@ -48,7 +48,7 @@ int writeCSV(Product *prod, unsigned int *total) {
   fprintf(f, "%s, %s, %s, %s, %s\n", "ID", "Name", "Category", "Quantity",
           "Price");
   for (int i = 0; i < *total; i++) {
-    fprintf(f, "%d, %s, %s, %d, %.2f\n", prod[i].id, prod[i].name,
+    fprintf(f, "%u, %s, %s, %u, %.2f\n", prod[i].id, prod[i].name,
             prod[i].category, prod[i].quantity, prod[i].price);
   }
   fclose(f);

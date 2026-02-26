@@ -1,0 +1,411 @@
+Checking main.c ...
+main.c:1:2: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+ ^
+main.c:2:2: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+ ^
+main.c:3:2: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+ ^
+src/auth.h:4:2: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+ ^
+src/auth.h:5:2: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+ ^
+src/auth.h:6:2: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+ ^
+src/auth.h:7:2: information: Include file: <time.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <time.h>
+ ^
+utilities/clear.h:8:2: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+ ^
+utilities/clear.h:9:2: information: Include file: <term.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <term.h>
+ ^
+src/security.h:4:2: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+ ^
+src/security.h:5:2: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+ ^
+src/security.h:6:2: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+ ^
+src/input_validation.h:4:2: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+ ^
+src/input_validation.h:5:2: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+ ^
+src/input_validation.h:6:2: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+ ^
+src/logger.h:4:2: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+ ^
+src/logger.h:5:2: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+ ^
+src/logger.h:6:2: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+ ^
+src/logger.h:7:2: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+ ^
+src/logger.h:8:2: information: Include file: <sys/types.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/types.h>
+ ^
+src/logger.h:9:2: information: Include file: <time.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <time.h>
+ ^
+src/product_controller.h:4:2: information: Include file: <math.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <math.h>
+ ^
+src/product_controller.h:5:2: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+ ^
+src/product_controller.h:6:2: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+ ^
+src/product_controller.h:7:2: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+ ^
+src/file_controller.h:4:2: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+ ^
+src/file_controller.h:5:2: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+ ^
+src/file_controller.h:6:2: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+ ^
+main.c:81:12: style: Variable 'exit' is assigned a value that is never used. [unreadVariable]
+      exit = 1;
+           ^
+main.c:184:12: style: Variable 'exit' is assigned a value that is never used. [unreadVariable]
+      exit = 1;
+           ^
+utilities/clear.h:3:2: information: Include file: <windows.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <windows.h>
+ ^
+Checking main.c: _WIN32...
+1/8 files checked 17% done
+Checking src/auth.c ...
+src/auth.c:6:2: information: Include file: <termios.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <termios.h>
+ ^
+src/auth.c:7:2: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+ ^
+src/auth.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/auth.c:117:3: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+  fprintf(f, "%d|%s|%s|%d\n", user->id, user->username, user->password_hash,
+  ^
+src/auth.c:358:5: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    printf("%-5d| %-20s| %-10s|\n", users[i].id, users[i].username,
+    ^
+src/auth.c:70:11: style: Variable 'value' can be declared as pointer to const [constVariablePointer]
+    char *value = strtok(line, "|");
+          ^
+src/auth.c:102:32: style: Parameter 'user' can be declared as pointer to const [constParameterPointer]
+static void writeUserCSV(User *user) {
+                               ^
+src/auth.c:224:26: style: Parameter 'session' can be declared as pointer to const [constParameterPointer]
+void createUser(Session *session) {
+                         ^
+src/auth.c:330:25: style: Parameter 'session' can be declared as pointer to const [constParameterPointer]
+void listUsers(Session *session) {
+                        ^
+src/auth.c:4:2: information: Include file: <conio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <conio.h>
+ ^
+Checking src/auth.c: _WIN32...
+src/auth.c:16:7: style: The scope of the variable 'ch' can be reduced. [variableScope]
+  int ch;
+      ^
+2/8 files checked 38% done
+Checking src/file_controller.c ...
+src/file_controller.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/file_controller.c:51:5: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    fprintf(f, "%d, %s, %s, %d, %.2f\n", prod[i].id, prod[i].name,
+    ^
+src/file_controller.c:51:5: warning: %d in format string (no. 4) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    fprintf(f, "%d, %s, %s, %d, %.2f\n", prod[i].id, prod[i].name,
+    ^
+src/file_controller.c:15:11: style: Redundant initialization for 'value'. The initialized value is overwritten before it is read. [redundantInitialization]
+    value = strtok(NULL, " = ");
+          ^
+src/file_controller.c:14:17: note: value is initialized
+    char *value = strtok(line, " = ");
+                ^
+src/file_controller.c:15:11: note: value is overwritten
+    value = strtok(NULL, " = ");
+          ^
+src/file_controller.c:68:7: style: The scope of the variable 'column' can be reduced. [variableScope]
+  int column = 0;
+      ^
+src/file_controller.c:14:11: style: Variable 'value' can be declared as pointer to const [constVariablePointer]
+    char *value = strtok(line, " = ");
+          ^
+src/file_controller.c:40:23: style: Parameter 'prod' can be declared as pointer to const [constParameterPointer]
+int writeCSV(Product *prod, unsigned int *total) {
+                      ^
+src/file_controller.c:40:43: style: Parameter 'total' can be declared as pointer to const [constParameterPointer]
+int writeCSV(Product *prod, unsigned int *total) {
+                                          ^
+src/file_controller.c:75:11: style: Variable 'value' can be declared as pointer to const [constVariablePointer]
+    char *value = strtok(string, ", ");
+          ^
+src/file_controller.c:68:14: style: Variable 'column' is assigned a value that is never used. [unreadVariable]
+  int column = 0;
+             ^
+3/8 files checked 42% done
+Checking src/input_validation.c ...
+4/8 files checked 45% done
+Checking src/logger.c ...
+src/logger.c:49:14: style: Variable 'tm_info' can be declared as pointer to const [constVariablePointer]
+  struct tm *tm_info = localtime(&now);
+             ^
+Checking src/logger.c: _WIN32...
+5/8 files checked 47% done
+Checking src/product_controller.c ...
+src/product_controller.c:1:2: information: Include file: <math.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <math.h>
+ ^
+src/product_controller.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/product_controller.c:58:9: warning: %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+        printf(GRN
+        ^
+src/product_controller.c:58:9: warning: %d in format string (no. 5) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+        printf(GRN
+        ^
+src/product_controller.c:63:9: warning: %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+        printf(
+        ^
+src/product_controller.c:63:9: warning: %d in format string (no. 5) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+        printf(
+        ^
+src/product_controller.c:73:9: warning: %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+        printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+        ^
+src/product_controller.c:73:9: warning: %d in format string (no. 5) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+        printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+        ^
+src/product_controller.c:78:7: warning: %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+      printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+      ^
+src/product_controller.c:78:7: warning: %d in format string (no. 5) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+      printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+      ^
+src/product_controller.c:123:7: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+      printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+      ^
+src/product_controller.c:123:7: warning: %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+      printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+      ^
+src/product_controller.c:123:7: warning: %d in format string (no. 5) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+      printf("%-4d|    %-5d|  %-10s|  %-10s| %-10d|  %-10.2f|\n", i + 1,
+      ^
+src/product_controller.c:132:7: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+      printf("Current Page : " YEL "%-34d" reset " Total Pages: " RED
+      ^
+src/product_controller.c:132:7: warning: %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+      printf("Current Page : " YEL "%-34d" reset " Total Pages: " RED
+      ^
+src/product_controller.c:171:3: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+  printf("UID: %d\n", prod[*total].id);
+  ^
+src/product_controller.c:217:3: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+  printf(GRN "Product with ID %d added successfully\n\n" reset,
+  ^
+src/product_controller.c:251:5: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    printf(CYN "Product with ID %d deleted successfully\n" reset, id);
+    ^
+src/product_controller.c:257:5: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    printf(RED "Product with ID %d does not exist.\n" reset, id);
+    ^
+src/product_controller.c:317:5: warning: %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    printf(reset "%-20s: " YEL "%10d" reset " -> " CYN, "Product Quantity",
+    ^
+src/product_controller.c:348:5: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    printf(GRN "Product with ID %d updated successfully.\n" reset, id);
+    ^
+src/product_controller.c:354:5: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    printf(RED "Product with ID %d does not exist.\n" reset, id);
+    ^
+src/product_controller.c:488:5: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    printf(RED "Product with ID %d does not exist.\n" reset, id);
+    ^
+src/product_controller.c:495:3: warning: %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+  printf("Product: " CYN "%s" reset " | Available stock: " YEL "%d" reset "\n",
+  ^
+src/product_controller.c:501:5: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    printf(RED "Insufficient stock! Only %d available.\n" reset,
+    ^
+src/product_controller.c:524:3: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+  printf("  Sold    : %d units\n", quantity);
+  ^
+src/product_controller.c:527:3: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+  printf("  Stock   : %d remaining\n", prod[item].quantity);
+  ^
+src/product_controller.c:560:5: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+    printf(RED "Product with ID %d does not exist.\n" reset, id);
+    ^
+src/product_controller.c:567:3: warning: %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+  printf("Product: " CYN "%s" reset " | Current stock: " YEL "%d" reset "\n",
+  ^
+src/product_controller.c:586:3: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+  printf("  Added     : %d units\n", quantity);
+  ^
+src/product_controller.c:587:3: warning: %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'. [invalidPrintfArgType_sint]
+  printf("  New stock : %d\n", prod[item].quantity);
+  ^
+src/product_controller.c:386:11: error: Common realloc mistake: 'result' nulled but not freed upon failure [memleakOnRealloc]
+          result = realloc(result, ((size) * sizeof(Product)));
+          ^
+src/product_controller.c:404:11: error: Common realloc mistake: 'result' nulled but not freed upon failure [memleakOnRealloc]
+          result = realloc(result, ((size) * sizeof(Product)));
+          ^
+src/product_controller.c:422:11: error: Common realloc mistake: 'result' nulled but not freed upon failure [memleakOnRealloc]
+          result = realloc(result, ((size) * sizeof(Product)));
+          ^
+src/product_controller.c:438:11: error: Common realloc mistake: 'result' nulled but not freed upon failure [memleakOnRealloc]
+          result = realloc(result, ((size) * sizeof(Product)));
+          ^
+src/product_controller.c:454:11: error: Common realloc mistake: 'result' nulled but not freed upon failure [memleakOnRealloc]
+          result = realloc(result, ((size) * sizeof(Product)));
+          ^
+src/product_controller.c:374:4: warning: If memory allocation fails, then there is a possible null pointer dereference: k [nullPointerOutOfMemory]
+  *k = 0;
+   ^
+src/product_controller.c:373:43: note: Assuming allocation function fails
+  unsigned int *k = (unsigned int *)malloc(sizeof(unsigned int));
+                                          ^
+src/product_controller.c:373:21: note: Assignment 'k=(unsigned int*)malloc(sizeof(unsigned int))', assigned value is 0
+  unsigned int *k = (unsigned int *)malloc(sizeof(unsigned int));
+                    ^
+src/product_controller.c:374:4: note: Null pointer dereference
+  *k = 0;
+   ^
+src/product_controller.c:604:30: warning: If memory allocation fails, then there is a possible null pointer dereference: prod [nullPointerOutOfMemory]
+  *uid = (*total == 0) ? 0 : prod[*total - 1].id;
+                             ^
+src/product_controller.c:602:27: note: Assuming allocation function fails
+  prod = (Product *)malloc((*size) * sizeof(Product));
+                          ^
+src/product_controller.c:602:10: note: Assignment 'prod=(struct Product*)malloc((*size)*sizeof(struct Product))', assigned value is 0
+  prod = (Product *)malloc((*size) * sizeof(Product));
+         ^
+src/product_controller.c:604:30: note: Null pointer dereference
+  *uid = (*total == 0) ? 0 : prod[*total - 1].id;
+                             ^
+src/product_controller.c:5:26: style: Parameter 'prod' can be declared as pointer to const [constParameterPointer]
+void simpleView(Product *prod, unsigned int *total, unsigned int *viewLimit,
+                         ^
+src/product_controller.c:5:46: style: Parameter 'total' can be declared as pointer to const [constParameterPointer]
+void simpleView(Product *prod, unsigned int *total, unsigned int *viewLimit,
+                                             ^
+src/product_controller.c:5:67: style: Parameter 'viewLimit' can be declared as pointer to const [constParameterPointer]
+void simpleView(Product *prod, unsigned int *total, unsigned int *viewLimit,
+                                                                  ^
+src/product_controller.c:87:27: style: Parameter 'prod' can be declared as pointer to const [constParameterPointer]
+void listProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
+                          ^
+src/product_controller.c:362:29: style: Parameter 'prod' can be declared as pointer to const [constParameterPointer]
+void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
+                            ^
+src/product_controller.c:362:49: style: Parameter 'total' can be declared as pointer to const [constParameterPointer]
+void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
+                                                ^
+src/product_controller.c:140:15: style: Variable 'ask' is assigned a value that is never used. [unreadVariable]
+          ask = 0;   // leave the ask loop [get input]
+              ^
+Checking src/product_controller.c: _WIN32...
+6/8 files checked 78% done
+Checking src/security.c ...
+src/security.c:1:2: information: Include file: <argon2.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <argon2.h>
+ ^
+src/security.c:3:2: information: Include file: <time.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <time.h>
+ ^
+src/security.c:4:2: information: Include file: <ctype.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <ctype.h>
+ ^
+src/security.c:10:2: information: Include file: <regex.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <regex.h>
+ ^
+src/security.c:19:2: information: Include file: <stdint.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdint.h>
+ ^
+src/security.c:50:42: style: The scope of the variable 't1' can be reduced. [variableScope]
+  uint32_t a, b, c, d, e, f, g, h, i, j, t1, t2, m[64];
+                                         ^
+src/security.c:50:46: style: The scope of the variable 't2' can be reduced. [variableScope]
+  uint32_t a, b, c, d, e, f, g, h, i, j, t1, t2, m[64];
+                                             ^
+src/security.c:7:2: information: Include file: <windows.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <windows.h>
+ ^
+src/security.c:8:2: information: Include file: <bcrypt.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <bcrypt.h>
+ ^
+Checking src/security.c: _WIN32...
+src/security.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+7/8 files checked 97% done
+Checking utilities/clear.c ...
+Checking utilities/clear.c: _WIN32...
+8/8 files checked 100% done
+main.c:10:6: style: The function 'cleanup' is never used. [unusedFunction]
+void cleanup(Product **pointer) {
+     ^
+src/input_validation.c:4:13: style: The function 'clearStdin' is never used. [unusedFunction]
+static void clearStdin(void) {
+            ^
+src/input_validation.c:42:5: style: The function 'getValidatedString' is never used. [unusedFunction]
+int getValidatedString(char *output, int maxLen) {
+    ^
+src/security.c:169:6: style: The function 'hashPasswordWithSalt' is never used. [unusedFunction]
+void hashPasswordWithSalt(const char *password, const char *salt,
+     ^
+src/security.c:181:5: style: The function 'generateSalt' is never used. [unusedFunction]
+int generateSalt(char *saltOut) {
+    ^
+main.c:15:6: style: The function 'searchMenu' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+void searchMenu(Product *prod, unsigned int *total, unsigned int *viewLimit) {
+     ^
+main.c:71:6: style: The function 'adminMenu' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+void adminMenu(Product *prod, unsigned int *total, unsigned int *uid,
+     ^
+main.c:174:6: style: The function 'employeeMenu' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+void employeeMenu(Product *prod, unsigned int *total, unsigned int *viewLimit,
+     ^
+src/auth.c:224:6: style: The function 'createUser' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+void createUser(Session *session) {
+     ^
+src/auth.c:330:6: style: The function 'listUsers' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+void listUsers(Session *session) {
+     ^
+src/product_controller.c:5:6: style: The function 'simpleView' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+void simpleView(Product *prod, unsigned int *total, unsigned int *viewLimit,
+     ^
+src/security.c:156:6: style: The function 'hashPassword' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+void hashPassword(const char *password, char *outputHex) {
+     ^
+src/security.c:268:5: style: The function 'matchesPattern' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+int matchesPattern(const char *input, const char *pattern) {
+    ^
+nofile:0:0: information: Active checkers: 119/975 (use --checkers-report=<filename> to see details) [checkersReport]
+

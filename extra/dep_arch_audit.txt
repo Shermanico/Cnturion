@@ -1,0 +1,22 @@
+djvulibre is affected by arbitrary code execution. High risk!
+grub is affected by multiple issues. High risk!
+libxml2 is affected by denial of service. High risk!
+pam is affected by arbitrary filesystem access. High risk!
+apr is affected by information disclosure. Medium risk!
+coreutils is affected by information disclosure. Medium risk!
+giflib is affected by information disclosure. Medium risk!
+lib32-libsndfile is affected by arbitrary code execution. Medium risk!
+libheif is affected by information disclosure. Medium risk!
+libtiff is affected by unknown, denial of service. Medium risk!
+linux is affected by multiple issues, insufficient validation. Medium risk!
+linux-zen is affected by multiple issues. Medium risk!
+openjpeg2 is affected by arbitrary code execution. Medium risk!
+openssl is affected by arbitrary command execution, certificate verification bypass. Medium risk!
+openvpn is affected by information disclosure. Medium risk!
+pass is affected by insufficient validation. Medium risk!
+perl is affected by signature forgery, directory traversal, unknown. Medium risk!
+postgresql is affected by denial of service. Medium risk!
+systemd is affected by information disclosure. Medium risk!
+wget is affected by information disclosure. Medium risk!
+xdg-utils is affected by information disclosure. Medium risk!
+ruby-bundler is affected by arbitrary command execution. Low risk!
