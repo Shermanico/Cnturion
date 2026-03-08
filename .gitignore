@@ -1,0 +1,17 @@
+# Compiled binaries
+Cnturion
+Cnturion.exe
+output_asan
+
+# User data (contains Argon2id password hashes — auto-generated on first run)
+data/Users.csv
+
+# Logs (auto-generated at runtime)
+logs/
+
+# Dependencies (auto-downloaded by cross-build.sh)
+deps/
+
+# Legacy / unused files
+Inventory.txt
+ansi_color/

@@ -7,4 +7,4 @@ gcc main.c \
   ./utilities/clear.c \
   -lncurses -lm -largon2 \
   -O2 -Wall -Wextra -fstack-protector-strong -D_FORTIFY_SOURCE=2 \
-  -o output
+  -o Cnturion

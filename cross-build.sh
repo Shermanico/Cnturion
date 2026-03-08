@@ -79,9 +79,9 @@ build_linux() {
     $INCLUDE_FLAGS \
     -lncurses -lm -largon2 \
     -O2 -Wall -Wextra -fstack-protector-strong -D_FORTIFY_SOURCE=2 \
-    -o output
+    -o Cnturion
 
-  success "Linux build complete → ./output"
+  success "Linux build complete → ./Cnturion"
 }
 
 # ── Build for Windows (cross-compile) ────────────────────────
@@ -108,9 +108,9 @@ build_windows() {
     -lm -lbcrypt \
     -O2 -Wall -Wextra \
     -static \
-    -o output.exe
+    -o Cnturion.exe
 
-  success "Windows build complete → ./output.exe"
+  success "Windows build complete → ./Cnturion.exe"
 }
 
 # ── Main ──────────────────────────────────────────────────────

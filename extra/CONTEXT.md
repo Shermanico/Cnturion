@@ -1,6 +1,6 @@
 # Cnturion — Project Context & Workflow Log
 
-> **Last updated**: 2026-02-19  
+> **Last updated**: 2026-03-07  
 > **Authors**: Jorge Nicolás Jiménez Moreno (Nico) & Penélope Ximena Sánchez Silva (Chobiol) 
 > **Course**: DevSecOps — Universidad Politécnica de Yucatán  
 > **Supervisor**: Angel Arturo Pech Che  
@@ -16,12 +16,12 @@ A **CLI-based Inventory Management System** written in **C**, with **cross-platf
 
 ## Current Credentials
 
-| Username | Password | Role |
-|----------|----------|------|
-| `admin` | `Admin123!` | Admin (full access) |
-| `employee1` | `Emp12345!` | Employee (restricted) |
+| Username | Role | Notes |
+|----------|------|-------|
+| `admin` | Admin (full access) | Auto-seeded on first run — see `seedDefaultAdmin()` in `auth.c` |
+| `employee` | Employee (restricted) | Created via admin user management |
 
-> Passwords are hashed using **Argon2id** (OWASP-recommended, memory-hard) with self-contained encoded strings stored in `data/Users.csv` (pipe-delimited). The default admin is auto-created on first run.
+> Passwords are hashed using **Argon2id** (OWASP-recommended, memory-hard) with self-contained encoded strings stored in `data/Users.csv` (pipe-delimited). Default credentials are defined only in source code and applied on first run.
 
 ---
 
@@ -47,26 +47,31 @@ Cnturion/
 │   ├── Inventory.txt           # Legacy (unused)
 │   └── Users.csv               # User accounts with Argon2id hashes (pipe-delimited)
 ├── logs/
-│   └── audit.log               # Security audit trail (auto-generated)
-├── config.ini                  # ViewLimit = 10 (pagination)
+│   └── audit.log               # Security audit trail (auto-generated, gitignored)
+├── config.ini                  # ViewLimit + documented data paths
+├── .gitignore                  # Excludes binaries, Users.csv, logs, deps
 ├── build.sh / build.bat        # Build scripts (Linux / Windows native)
 ├── cross-build.sh              # Cross-compilation script (Linux→Windows + native Linux)
-├── deps/                       # Auto-downloaded dependencies (Argon2 source for Windows)
-├── Tareas.pdf                  # Assignment requirements (13 security points)
-├── DevSecOps Centurion.pdf     # Security requirements document (WIP)
-└── ansi_color/color.h          # Duplicate of utilities/color.h (unused)
+├── deploy.sh / deploy.bat      # Deployment hardening (chmod/icacls permissions)
+├── deps/                       # Auto-downloaded dependencies (gitignored)
+└── extra/
+    ├── CONTEXT.md              # This file
+    ├── Security_Requirements.md # Full security requirements document
+    ├── SAST_DAST_Report.md     # SAST/DAST findings and fixes
+    ├── Tareas.pdf              # Assignment requirements (13 security points)
+    └── DevSecOps Centurion.pdf # Original security spec (superseded by Security_Requirements.md)
 ```
 
 ### Build & Run
 ```bash
 # Linux (native)
-bash build.sh             # Compiles to ./output
-./output                  # Run the app
+bash build.sh             # Compiles to ./Cnturion
+./Cnturion                # Run the app
 
 # Cross-compile (from Linux)
 ./cross-build.sh          # Build both Linux + Windows
-./cross-build.sh linux    # Linux only  → ./output
-./cross-build.sh windows  # Windows only → ./output.exe
+./cross-build.sh linux    # Linux only  → ./Cnturion
+./cross-build.sh windows  # Windows only → ./Cnturion.exe
 ```
 
 **Linux dependencies**: `gcc`, `ncurses` (`-lncurses`), `libargon2` (`-largon2`), `libm` (`-lm`)  
@@ -157,13 +162,23 @@ bash build.sh             # Compiles to ./output
 - Post-fix cppcheck re-scan: **zero errors, zero warnings**
 - Full report saved to `extra/SAST_DAST_Report.md`
 
+### 2026-03-07 — Pre-Presentation Compliance Hardening
+- Created `.gitignore` — excludes `data/Users.csv`, `logs/`, binaries, `deps/`
+- Removed sensitive files from git tracking (`git rm --cached`)
+- Created `pre-presentation-backup` branch on GitHub with full snapshot
+- Created `deploy.sh` (Linux: chmod 600/700) and `deploy.bat` (Windows: icacls)
+- Created `extra/Security_Requirements.md` — threat model + all 13 security points documented
+- Updated `config.ini` — documented data file paths
+- Removed plaintext passwords from `CONTEXT.md` credential table
+- Updated compliance: #1 → 80%, #10 → 85%, #13 → 70%; overall → ~90%
+
 ---
 
 ## Compliance with Tareas.pdf (13 Security Points)
 
 | # | Requirement | Status | Notes |
 |---|------------|--------|-------|
-| 1 | Security requirements defined | 🟡 40% | `DevSecOps Centurion.pdf` exists but incomplete |
+| 1 | Security requirements defined | ✅ 80% | `extra/Security_Requirements.md` — threat model, all 13 points documented |
 | 2 | **Secure architecture design** | ✅ 80% | **Done**: role separation, minimum privilege, defense in depth |
 | 3 | Input validation (backend) | ✅ 100% | **Done**: POSIX regex for all text inputs, sanitizeString, range checks |
 | 4 | Password hashing | ✅ 100% | **Done**: Argon2id (OWASP-recommended), self-contained encoded hashes |
@@ -172,12 +187,12 @@ bash build.sh             # Compiles to ./output
 | 7 | Error handling | ✅ 90% | **Done**: NULL checks, error codes, generic messages, logging |
 | 8 | Logging & auditing | ✅ 80% | **Done**: logger.c/h, audit.log with timestamps |
 | 9 | Dependencies scanned | ✅ 90% | `arch-audit` run — 0 CVEs for argon2, ncurses, glibc |
-| 10 | Secrets out of code | 🟡 50% | No secrets in code; file paths hardcoded |
+| 10 | Secrets out of code | ✅ 85% | `.gitignore` excludes Users.csv/logs; paths in `config.ini`; no secrets in source |
 | 11 | HTTPS everywhere | ⬜ N/A | CLI app, no network |
 | 12 | Security testing (SAST/DAST) | ✅ 80% | cppcheck + flawfinder (SAST), ASan (DAST), all bugs fixed |
-| 13 | Hardened deployment | 🟡 30% | Hardened compiler flags added |
+| 13 | Hardened deployment | ✅ 70% | Compiler flags + `deploy.sh`/`deploy.bat` with file permissions |
 
-**Estimated overall compliance: ~82%** (sections 3–3.5: ~98%, SAST/DAST: 80%)
+**Estimated overall compliance: ~90%** (up from ~82%)
 
 ---
 

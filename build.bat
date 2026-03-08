@@ -7,4 +7,4 @@ gcc main.c ^
   ./utilities/clear.c ^
   -lm -largon2 -lbcrypt ^
   -Wall -Wextra ^
-  -o output.exe
+  -o Cnturion.exe
