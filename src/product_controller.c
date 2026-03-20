@@ -633,7 +633,9 @@ Product *initiate(Product *prod, unsigned int *total, unsigned int *uid,
   if (!prod) {
     return NULL;
   }
-  readCSV(prod);
+  if (*total > 0) {
+    readCSV(prod);
+  }
   *uid = (*total == 0) ? 0 : prod[*total - 1].id;
   return prod;
 }
