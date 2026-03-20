@@ -40,18 +40,24 @@ void initConfig(void) {
 
 int readINI(unsigned int *viewLimit) {
   FILE *f = fopen(INI, "r");
+  // Set safe default before parsing
+  *viewLimit = 10;
   if (!f) {
     printf(RED "Error: Could not load configuration file.\n" reset);
     logEvent(LOG_ERROR, NULL, "READ_CONFIG", "Failed to open config.ini");
-    *viewLimit = 10; // Safe default
     return -1;
   }
   char line[256];
   while (fgets(line, sizeof(line), f)) {
-    char *value = strtok(line, " = ");
-    value = strtok(NULL, " = ");
-    if (value) {
-      *viewLimit = atoi(value);
+    char *key = strtok(line, " = ");
+    if (key && strcmp(key, "ViewLimit") == 0) {
+      char *value = strtok(NULL, " = ");
+      if (value) {
+        int parsed = atoi(value);
+        if (parsed > 0) {
+          *viewLimit = (unsigned int)parsed;
+        }
+      }
     }
   }
   fclose(f);
