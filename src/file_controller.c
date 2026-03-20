@@ -1,6 +1,43 @@
 #include <file_controller.h>
 #include <logger.h>
 
+void initDataDir(void) {
+  struct stat st = {0};
+  if (stat(DATA_DIR, &st) == -1) {
+#ifdef _WIN32
+    if (mkdir(DATA_DIR) != 0) {
+#else
+    if (mkdir(DATA_DIR, 0700) != 0) {
+#endif
+      fprintf(stderr, "Warning: Could not create data directory.\n");
+    }
+  }
+}
+
+void initConfig(void) {
+  FILE *f = fopen(INI, "r");
+  if (f) {
+    fclose(f);
+    return; // config.ini already exists
+  }
+
+  f = fopen(INI, "w");
+  if (!f) {
+    fprintf(stderr, "Warning: Could not create default config.ini.\n");
+    return;
+  }
+
+  fprintf(f, "ViewLimit = 10\n");
+  fprintf(f, "\n");
+  fprintf(f, "; Data file paths (used by the application)\n");
+  fprintf(f,
+          "; These files contain sensitive data and are excluded from git\n");
+  fprintf(f, "UsersFile = data/Users.csv\n");
+  fprintf(f, "InventoryFile = data/Inventory.csv\n");
+  fprintf(f, "LogFile = logs/audit.log\n");
+  fclose(f);
+}
+
 int readINI(unsigned int *viewLimit) {
   FILE *f = fopen(INI, "r");
   if (!f) {

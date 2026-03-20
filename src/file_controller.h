@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <string.h>
 
 #include <color.h>
@@ -11,6 +13,13 @@
 #define DATA "data/Inventory.txt"
 #define CSV "data/Inventory.csv"
 #define INI "config.ini"
+#define DATA_DIR "data"
+
+// Create data/ directory if it doesn't exist
+void initDataDir(void);
+
+// Create config.ini with defaults if it doesn't exist
+void initConfig(void);
 
 // Returns 0 on success, -1 on error
 int readINI(unsigned int *viewLimit);

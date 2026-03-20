@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include <auth.h>
+#include <file_controller.h>
 #include <input_validation.h>
 #include <logger.h>
 #include <product_controller.h>
@@ -237,6 +238,10 @@ void employeeMenu(Product *prod, unsigned int *total, unsigned int *viewLimit,
 }
 
 int main(void) {
+  // --- Bootstrap directories and config ---
+  initDataDir();
+  initConfig();
+
   // --- Initialize Logger ---
   initLogger();
 

@@ -75,9 +75,13 @@ build_linux() {
     error "gcc not found. Install it with: sudo pacman -S gcc"
   fi
 
+  fetch_argon2
+
   gcc "${APP_SOURCES[@]}" \
+    "${ARGON2_SOURCES[@]}" \
     $INCLUDE_FLAGS \
-    -lncurses -lm -largon2 \
+    -I"$ARGON2_DIR/include" \
+    -lncurses -lm -lpthread \
     -O2 -Wall -Wextra -fstack-protector-strong -D_FORTIFY_SOURCE=2 \
     -o Cnturion
 
