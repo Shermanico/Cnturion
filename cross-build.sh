@@ -28,6 +28,7 @@ APP_SOURCES=(
   src/security.c
   src/logger.c
   utilities/clear.c
+  utilities/color.c
 )
 
 INCLUDE_FLAGS="-I./src/ -I./model/ -I./utilities/"

@@ -170,42 +170,42 @@ void addProduct(Product *prod, unsigned int *total, unsigned int *uid,
   prod[*total].id = *uid + 1;
   printf("UID: %u\n", prod[*total].id);
 
-  printf("Product Name: ");
-  fgets(prod[*total].name, 128, stdin);
+  printf("Product Name (or 'exit' to cancel): ");
+  if (!fgets(prod[*total].name, 128, stdin) || isExit(prod[*total].name)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
   prod[*total].name[strcspn(prod[*total].name, "\n")] = 0;
   while (!validateProductName(prod[*total].name)) {
     printf(RED
            "Invalid name! Use letters, numbers, spaces, hyphens, dots." reset
            " Enter again: ");
-    fgets(prod[*total].name, 128, stdin);
+    if (!fgets(prod[*total].name, 128, stdin) || isExit(prod[*total].name)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
     prod[*total].name[strcspn(prod[*total].name, "\n")] = 0;
   }
   sanitizeString(prod[*total].name, 127);
 
-  printf("Product Category: ");
-  fgets(prod[*total].category, 64, stdin);
+  printf("Product Category (or 'exit' to cancel): ");
+  if (!fgets(prod[*total].category, 64, stdin) || isExit(prod[*total].category)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
   prod[*total].category[strcspn(prod[*total].category, "\n")] = 0;
   while (!validateProductCategory(prod[*total].category)) {
     printf(RED "Invalid category! Use letters, numbers, spaces, hyphens." reset
                " Enter again: ");
-    fgets(prod[*total].category, 64, stdin);
+    if (!fgets(prod[*total].category, 64, stdin) || isExit(prod[*total].category)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
     prod[*total].category[strcspn(prod[*total].category, "\n")] = 0;
   }
   sanitizeString(prod[*total].category, 63);
 
-  printf("Product Quantity: ");
-  getDigit(&prod[*total].quantity);
+  printf("Product Quantity (or 'exit' to cancel): ");
+  if (getDigit(&prod[*total].quantity) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
   while (prod[*total].quantity == 0 || prod[*total].quantity > 999999) {
     printf(RED "Quantity must be between 1 and 999999!" reset " Enter again: ");
-    getDigit(&prod[*total].quantity);
+    if (getDigit(&prod[*total].quantity) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
   }
 
-  printf("Product Price: ");
-  getFloat(&prod[*total].price);
+  printf("Product Price (or 'exit' to cancel): ");
+  if (getFloat(&prod[*total].price) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
   while (prod[*total].price <= 0 || prod[*total].price > 999999.99f) {
     printf(RED "Price must be between 0.01 and 999999.99!" reset
                " Enter again: ");
-    getFloat(&prod[*total].price);
+    if (getFloat(&prod[*total].price) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
   }
 
   unsigned int target = (*total);
@@ -230,8 +230,8 @@ void deleteProduct(Product *prod, unsigned int *total,
   unsigned int exist = 0;
   unsigned int item = 0;
   listProduct(prod, total, viewLimit);
-  printf("Please select the ID of the product to delete : ");
-  getDigit(&id);
+  printf("Please select the ID of the product to delete (or 'exit' to cancel) : ");
+  if (getDigit(&id) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
 
   for (int i = 0; i < *total; i++) {
     if (prod[i].id == id) {
@@ -269,8 +269,8 @@ void updateProduct(Product *prod, unsigned int *total,
   char input[128];
 
   listProduct(prod, total, viewLimit);
-  printf("Please select the ID of the product to update : ");
-  getDigit(&id);
+  printf("Please select the ID of the product to update (or 'exit' to cancel) : ");
+  if (getDigit(&id) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
 
   for (int i = 0; i < *total; i++) {
     if (prod[i].id == id) {
@@ -284,10 +284,10 @@ void updateProduct(Product *prod, unsigned int *total,
     printf("- Type 'Enter' to skip and the data will remain the same.\n");
     printf("%22s" YEL "%10s" reset " -> " CYN "%-10s" reset "\n", "", "[Old]",
            "[New]");
-    printf("%-20s: " YEL "%10s" reset " -> " CYN, "Product Name",
+    printf("%-20s (or 'exit'): " YEL "%10s" reset " -> " CYN, "Product Name",
            prod[item].name);
     // fflush(stdin);
-    fgets(input, 100, stdin);
+    if (!fgets(input, 100, stdin) || isExit(input)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
     if (*input != '\n') {
       input[strcspn(input, "\n")] = 0;
       if (validateProductName(input)) {
@@ -299,10 +299,10 @@ void updateProduct(Product *prod, unsigned int *total,
       }
     }
 
-    printf(reset "%-20s: " YEL "%10s" reset " -> " CYN, "Product Category",
+    printf(reset "%-20s (or 'exit'): " YEL "%10s" reset " -> " CYN, "Product Category",
            prod[item].category);
     // fflush(stdin);
-    fgets(input, 100, stdin);
+    if (!fgets(input, 100, stdin) || isExit(input)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
     if (*input != '\n') {
       input[strcspn(input, "\n")] = 0;
       if (validateProductCategory(input)) {
@@ -314,29 +314,29 @@ void updateProduct(Product *prod, unsigned int *total,
       }
     }
 
-    printf(reset "%-20s: " YEL "%10u" reset " -> " CYN, "Product Quantity",
+    printf(reset "%-20s (or 'exit'): " YEL "%10u" reset " -> " CYN, "Product Quantity",
            prod[item].quantity);
     // fflush(stdin);
-    fgets(input, 100, stdin);
+    if (!fgets(input, 100, stdin) || isExit(input)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
     if (*input != '\n') {
       input[strcspn(input, "\n")] = 0;
       if (atoi(input) == 0) {
         printf(RED "Invalid input !" reset " Enter again : " CYN);
-        getDigit(&prod[item].quantity);
+        if (getDigit(&prod[item].quantity) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
       } else {
         prod[item].quantity = atoi(input);
       }
     }
 
-    printf(reset "%-20s: " YEL "%10.2f" reset " -> " CYN, "Product Price",
+    printf(reset "%-20s (or 'exit'): " YEL "%10.2f" reset " -> " CYN, "Product Price",
            prod[item].price);
     // fflush(stdin);
-    fgets(input, 100, stdin);
+    if (!fgets(input, 100, stdin) || isExit(input)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
     if (*input != '\n') {
       input[strcspn(input, "\n")] = 0;
       if (atof(input) == 0) {
         printf(RED "Invalid input !" reset " Enter again : " CYN);
-        getFloat(&prod[item].price);
+        if (getFloat(&prod[item].price) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
       } else {
         prod[item].price = atof(input);
       }
@@ -379,8 +379,8 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
   *k = 0;
 
   if (action == 1) {
-    printf("ID : ");
-    getDigit(&digit);
+    printf("ID (or 'exit' to cancel): ");
+    if (getDigit(&digit) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); free(result); free(k); return; }
 
     for (int i = 0; i < *total; i++) {
       if (prod[i].id == digit) {
@@ -400,8 +400,8 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
     listProduct(result, k, viewLimit);
     *k = 0;
   } else if (action == 2) {
-    printf("Name : ");
-    fgets(string, 128, stdin);
+    printf("Name (or 'exit' to cancel): ");
+    if (!fgets(string, 128, stdin) || isExit(string)) { printf(YEL "\nOperation cancelled.\n" reset); free(result); free(k); return; }
     string[strcspn(string, "\n")] = 0;
     sanitizeString(string, 127);
 
@@ -423,8 +423,8 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
     listProduct(result, k, viewLimit);
     *k = 0;
   } else if (action == 3) {
-    printf("Category : ");
-    fgets(string, 128, stdin);
+    printf("Category (or 'exit' to cancel): ");
+    if (!fgets(string, 128, stdin) || isExit(string)) { printf(YEL "\nOperation cancelled.\n" reset); free(result); free(k); return; }
     string[strcspn(string, "\n")] = 0;
     sanitizeString(string, 127);
 
@@ -446,8 +446,8 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
     listProduct(result, k, viewLimit);
     *k = 0;
   } else if (action == 4) {
-    printf("Quantity : ");
-    getDigit(&digit);
+    printf("Quantity (or 'exit' to cancel): ");
+    if (getDigit(&digit) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); free(result); free(k); return; }
 
     for (int i = 0; i < *total; i++) {
       if (prod[i].quantity == digit) {
@@ -467,8 +467,8 @@ void searchProduct(Product *prod, unsigned int *total, unsigned int *viewLimit,
     listProduct(result, k, viewLimit);
     *k = 0;
   } else if (action == 5) {
-    printf("Price : ");
-    getFloat(&number);
+    printf("Price (or 'exit' to cancel): ");
+    if (getFloat(&number) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); free(result); free(k); return; }
 
     for (int i = 0; i < *total; i++) {
       if (fabs(prod[i].price - number) < 0.01f) {
@@ -503,8 +503,8 @@ void sellProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
   if (*total == 0)
     return;
 
-  printf("Please select the ID of the product to sell: ");
-  getDigit(&id);
+  printf("Please select the ID of the product to sell (or 'exit' to cancel): ");
+  if (getDigit(&id) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
 
   for (unsigned int i = 0; i < *total; i++) {
     if (prod[i].id == id) {
@@ -524,8 +524,8 @@ void sellProduct(Product *prod, unsigned int *total, unsigned int *viewLimit) {
 
   printf("Product: " CYN "%s" reset " | Available stock: " YEL "%u" reset "\n",
          prod[item].name, prod[item].quantity);
-  printf("Quantity to sell: ");
-  getDigit(&quantity);
+  printf("Quantity to sell (or 'exit' to cancel): ");
+  if (getDigit(&quantity) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
 
   if (quantity > prod[item].quantity) {
     printf(RED "Insufficient stock! Only %u available.\n" reset,
@@ -575,8 +575,8 @@ void restockProduct(Product *prod, unsigned int *total,
   if (*total == 0)
     return;
 
-  printf("Please select the ID of the product to restock: ");
-  getDigit(&id);
+  printf("Please select the ID of the product to restock (or 'exit' to cancel): ");
+  if (getDigit(&id) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
 
   for (unsigned int i = 0; i < *total; i++) {
     if (prod[i].id == id) {
@@ -596,8 +596,8 @@ void restockProduct(Product *prod, unsigned int *total,
 
   printf("Product: " CYN "%s" reset " | Current stock: " YEL "%u" reset "\n",
          prod[item].name, prod[item].quantity);
-  printf("Quantity to add: ");
-  getDigit(&quantity);
+  printf("Quantity to add (or 'exit' to cancel): ");
+  if (getDigit(&quantity) == INPUT_CANCELLED) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
 
   if (quantity == 0) {
     printf(RED "Quantity must be greater than 0.\n" reset);

@@ -1,4 +1,5 @@
 #include <auth.h>
+#include <input_validation.h>
 
 #ifdef _WIN32
 #include <conio.h>
@@ -193,6 +194,7 @@ int login(Session *session) {
 
     printf("Password: ");
     readPassword(password, 128);
+    if (isExit(password)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return 0; }
 
     for (int i = 0; i < count; i++) {
       if (strcmp(users[i].username, username) == 0 &&
@@ -242,14 +244,14 @@ void createUser(Session *session) {
   printf(CYN "===== Create New User =====\n" reset);
 
   // Username with validation
-  printf("Username (3-63 chars, alphanumeric/underscore): ");
-  fgets(newUser.username, 64, stdin);
+  printf("Username (3-63 chars, alphanumeric/underscore) (or 'exit' to cancel): ");
+  if (!fgets(newUser.username, 64, stdin) || isExit(newUser.username)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
   newUser.username[strcspn(newUser.username, "\n")] = '\0';
 
   while (!validateUsername(newUser.username)) {
     printf(RED "Invalid username! " reset
                "Must be 3-63 chars, alphanumeric/underscore only: ");
-    fgets(newUser.username, 64, stdin);
+    if (!fgets(newUser.username, 64, stdin) || isExit(newUser.username)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
     newUser.username[strcspn(newUser.username, "\n")] = '\0';
   }
 
@@ -276,6 +278,7 @@ void createUser(Session *session) {
   while (!validPass) {
     printf("Password (min 8 chars, 1 uppercase, 1 digit, 1 special): ");
     readPassword(password, 128);
+    if (isExit(password)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
 
     if (!validatePassword(password)) {
       printf(RED "Password does not meet requirements!\n" reset);
@@ -309,9 +312,9 @@ void createUser(Session *session) {
   printf("Select role:\n");
   printf("  0 - Admin\n");
   printf("  1 - Employee\n");
-  printf("Choice: ");
+  printf("Choice (or type 'exit' to cancel): ");
   char roleInput[10];
-  fgets(roleInput, 10, stdin);
+  if (!fgets(roleInput, 10, stdin) || isExit(roleInput)) { printf(YEL "\nOperation cancelled.\n" reset); printf("\nPress enter to continue..."); getchar(); ClearScreen(); return; }
   roleChoice = (unsigned int)atoi(roleInput);
 
   if (roleChoice > 1) {

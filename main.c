@@ -7,6 +7,7 @@
 #include <input_validation.h>
 #include <logger.h>
 #include <product_controller.h>
+#include <color.h>
 
 void cleanup(Product **pointer) {
   free(*pointer);
@@ -238,6 +239,7 @@ void employeeMenu(Product *prod, unsigned int *total, unsigned int *viewLimit,
 }
 
 int main(void) {
+  initColors();
   // --- Bootstrap directories and config ---
   initDataDir();
   initConfig();
